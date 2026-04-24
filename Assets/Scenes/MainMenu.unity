@@ -1632,7 +1632,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainMenuPanel: {fileID: 1673311460}
   settingsPanel: {fileID: 2103784691}
-  gameSceneName: SampleScene
+  gameSceneName: GameScene
 --- !u!4 &1297449356
 Transform:
   m_ObjectHideFlags: 0

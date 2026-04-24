@@ -47,9 +47,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isRaining: 0
   raindropPrefab: {fileID: 2040964717480185849, guid: 35324902b6271714face44dae2dd96d2, type: 3}
+  goldenRaindropPrefab: {fileID: 2040964717480185849, guid: a893a5f317b68324c819dae34c16d0a3, type: 3}
   minDropInterval: 0.5
   maxDropInterval: 2
   dropSpawnPoint: {fileID: 3857130804934648485}
+  spawnRangeX: 1.5
   baseSpeedMultiplier: 1
   windChangeSpeed: 0.1
   minWindSpeed: 0.5
