@@ -10,6 +10,8 @@ namespace Managers
     {
         [Header("Upgrade Definitions")]
         [SerializeField] private UpgradeDataSO[] upgrades;
+        [Tooltip("Ağaç yapısını okuyarak kilit (parent) kontrolü yapmak için gereklidir.")]
+        [SerializeField] private UpgradeTreeDataSO treeData;
 
         // UpgradeType → mevcut seviye
         private Dictionary<UpgradeType, int> _levels = new Dictionary<UpgradeType, int>();
@@ -17,12 +19,36 @@ namespace Managers
         // UpgradeType → ScriptableObject hızlı erişim için lookup
         private Dictionary<UpgradeType, UpgradeDataSO> _dataLookup = new Dictionary<UpgradeType, UpgradeDataSO>();
 
+        // UpgradeType → Parent UpgradeType lookup (Kilit kontrolü için)
+        private Dictionary<UpgradeType, UpgradeType> _parentLookup = new Dictionary<UpgradeType, UpgradeType>();
+
         public static event Action<UpgradeType, int> OnUpgradePurchased;
 
         protected override void Awake()
         {
             base.Awake();
             BuildLookup();
+            BuildTreeLookup();
+        }
+
+        private void BuildTreeLookup()
+        {
+            if (treeData == null || treeData.rootNode == null) return;
+            TraverseNode(treeData.rootNode);
+        }
+
+        private void TraverseNode(UpgradeNodeDataSO node)
+        {
+            if (node == null || node.children == null) return;
+
+            foreach (var child in node.children)
+            {
+                if (child != null && child.upgradeData != null && node.upgradeData != null)
+                {
+                    _parentLookup[child.upgradeData.upgradeType] = node.upgradeData.upgradeType;
+                    TraverseNode(child); // Recursive
+                }
+            }
         }
 
         private void BuildLookup()
@@ -39,10 +65,13 @@ namespace Managers
 
         // ─── PUBLIC API ────────────────────────────────────────────────────────
 
-        /// <summary>Upgrade satın almayı dener. Para yeterliyse ve max seviye değilse başarılı döner.</summary>
+        /// <summary>Upgrade satın almayı dener. Para yeterliyse, kilidi açıksa ve max seviye değilse başarılı döner.</summary>
         public bool TryPurchaseUpgrade(UpgradeType type)
         {
             if (!_dataLookup.TryGetValue(type, out var data)) return false;
+
+            // PARENT KİLİDİ KONTROLÜ
+            if (!IsUnlocked(type)) return false;
 
             int currentLevel = GetLevel(type);
             if (currentLevel >= data.maxLevel) return false;
@@ -59,6 +88,19 @@ namespace Managers
         public int GetLevel(UpgradeType type)
         {
             return _levels.TryGetValue(type, out int lvl) ? lvl : 0;
+        }
+
+        /// <summary>Parent upgrade satın alınmış mı kontrol eder (kilidi açık mı?).</summary>
+        public bool IsUnlocked(UpgradeType type)
+        {
+            // Eğer treeData hiç verilmemişse kilit sistemi devre dışı sayılır.
+            if (treeData == null || treeData.rootNode == null) return true;
+
+            // _parentLookup'ta bu type yoksa → ya root'tur, ya da ağaçta tanımsızdır. Her iki durumda da açık.
+            if (!_parentLookup.TryGetValue(type, out UpgradeType parentType)) return true;
+
+            // Parent'ı varsa → parent en az 1 kere satın alınmış olmalı.
+            return GetLevel(parentType) > 0;
         }
 
         /// <summary>Mevcut seviyeye göre upgrade değerini döndürür.</summary>
@@ -91,6 +133,7 @@ namespace Managers
 
         private void OnGUI()
         {
+            if (GameManager.Instance != null && !GameManager.Instance.ShowDebugUI) return;
             if (upgrades == null || upgrades.Length == 0) return;
 
             GUIStyle style = new GUIStyle();

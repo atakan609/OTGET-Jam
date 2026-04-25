@@ -91,7 +91,15 @@ namespace Gameplay
                 : 0f;
 
             bool spawnGolden = goldenRaindropPrefab != null && Random.value < goldenChance;
-            Instantiate(spawnGolden ? goldenRaindropPrefab : raindropPrefab, spawnPos, Quaternion.identity);
+            GameObject drop = Instantiate(spawnGolden ? goldenRaindropPrefab : raindropPrefab, spawnPos, Quaternion.identity);
+
+            // DropValue upgrade'ini uygula
+            var raindrop = drop.GetComponent<Raindrop>();
+            if (raindrop != null && UpgradeManager.Instance != null)
+            {
+                float bonus = UpgradeManager.Instance.GetCurrentValue(UpgradeType.DropValue);
+                raindrop.dropValue = raindrop.dropValue + bonus;
+            }
         }
 
         private void SetNextRainTime()

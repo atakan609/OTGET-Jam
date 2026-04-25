@@ -13,12 +13,14 @@ namespace Gameplay
         public BucketController Bucket;
 
         private Rigidbody2D _rb;
+        private Animator _anim;
         private float _horizontalInput;
         private float _currentMoveSpeed;
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
+            _anim = GetComponent<Animator>();
             _rb.freezeRotation = true;
             gameObject.tag = "Player";
             _currentMoveSpeed = baseMoveSpeed;
@@ -38,6 +40,31 @@ namespace Gameplay
         private void Update()
         {
             _horizontalInput = Input.GetAxisRaw("Horizontal");
+
+            // Animator güncelleme
+            if (_anim != null)
+            {
+                _anim.SetFloat("Speed", Mathf.Abs(_horizontalInput));
+            }
+
+            // Karakteri yönüne göre çevir
+            FlipCharacter();
+        }
+
+        private void FlipCharacter()
+        {
+            if (_horizontalInput > 0.01f)
+            {
+                Vector3 scaler = transform.localScale;
+                scaler.x = Mathf.Abs(scaler.x);
+                transform.localScale = scaler;
+            }
+            else if (_horizontalInput < -0.01f)
+            {
+                Vector3 scaler = transform.localScale;
+                scaler.x = -Mathf.Abs(scaler.x);
+                transform.localScale = scaler;
+            }
         }
 
         private void FixedUpdate()

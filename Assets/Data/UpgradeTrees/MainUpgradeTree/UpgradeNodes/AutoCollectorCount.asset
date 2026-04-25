@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0030f6b536a051347823aa927b9ba3d7, type: 3}
   m_Name: AutoCollectorCount
   m_EditorClassIdentifier: 
-  upgradeData: {fileID: 11400000, guid: 5ab7e680960d1984588423f840ec07df, type: 2}
+  upgradeData: {fileID: 11400000, guid: 5d422df0da674ee4fbac5f3e99c0d22d, type: 2}
   children:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 97a8b193c8992574eb355215325d332c, type: 2}
+  - {fileID: 11400000, guid: 7e0bf31568f64a647903067a9ca594da, type: 2}
   icon: {fileID: -6359276090418552137, guid: 1ecbf9f956d60514baa3d44a5a917dd7, type: 3}

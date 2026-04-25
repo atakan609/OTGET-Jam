@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48b33ba98a5becc40889e73b1d1cc8e7, type: 3}
   m_Name: MainUpgradeTree
   m_EditorClassIdentifier: 
-  rootNode: {fileID: 0}
+  rootNode: {fileID: 11400000, guid: 9e6e5286aff93e249812a981c667af40, type: 2}

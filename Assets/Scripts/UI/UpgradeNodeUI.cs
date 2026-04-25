@@ -4,9 +4,11 @@ using TMPro;
 using Gameplay;
 using Managers;
 
+using UnityEngine.EventSystems;
+
 namespace UI
 {
-    public class UpgradeNodeUI : MonoBehaviour
+    public class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         public enum NodeState { Locked, Available, Purchased, Maxed }
 
@@ -126,6 +128,35 @@ namespace UI
             if (UpgradeManager.Instance.TryPurchaseUpgrade(_nodeData.upgradeData.upgradeType))
             {
                 // UI'ı kendisi refreshleyecek çünkü event dinleyecek
+                
+                // Tooltip'i de yenilemek için eğer açıksa güncel değerlerle tekrar gösterelim
+                if (_currentState != NodeState.Locked && UpgradeTreeUI.Instance != null)
+                {
+                    int lvl = UpgradeManager.Instance.GetLevel(_nodeData.upgradeData.upgradeType);
+                    int max = _nodeData.upgradeData.maxLevel;
+                    int cost = UpgradeManager.Instance.GetNextCost(_nodeData.upgradeData.upgradeType);
+                    UpgradeTreeUI.Instance.ShowTooltip(_nodeData.upgradeData, lvl, cost, lvl >= max);
+                }
+            }
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (UpgradeTreeUI.Instance != null && _nodeData != null && _nodeData.upgradeData != null)
+            {
+                int currentLevel = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetLevel(_nodeData.upgradeData.upgradeType) : 0;
+                int maxLevel = _nodeData.upgradeData.maxLevel;
+                int nextCost = UpgradeManager.Instance != null ? UpgradeManager.Instance.GetNextCost(_nodeData.upgradeData.upgradeType) : 0;
+                
+                UpgradeTreeUI.Instance.ShowTooltip(_nodeData.upgradeData, currentLevel, nextCost, currentLevel >= maxLevel);
+            }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (UpgradeTreeUI.Instance != null)
+            {
+                UpgradeTreeUI.Instance.HideTooltip();
             }
         }
     }

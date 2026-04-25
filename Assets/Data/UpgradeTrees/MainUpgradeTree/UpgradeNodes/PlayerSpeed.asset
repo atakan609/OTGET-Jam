@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0030f6b536a051347823aa927b9ba3d7, type: 3}
   m_Name: PlayerSpeed
   m_EditorClassIdentifier: 
-  upgradeData: {fileID: 11400000, guid: 1e82107e3a29b4e41b670e6b90f77a1f, type: 2}
+  upgradeData: {fileID: 11400000, guid: 4e4f632e25f992e4ca97573cab682fc6, type: 2}
   children:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: f5660f22a9253994f9bc2e365cc0fcc2, type: 2}
   icon: {fileID: -6359276090418552137, guid: 1ecbf9f956d60514baa3d44a5a917dd7, type: 3}

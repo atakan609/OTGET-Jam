@@ -15,7 +15,17 @@ namespace Managers
     public class GameManager : Singleton<GameManager>
     {
         public GameState CurrentState { get; private set; }
+        public bool ShowDebugUI { get; private set; } = true; // Varsayılan olarak açık
+        
         public static event Action<GameState> OnStateChanged;
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                ShowDebugUI = !ShowDebugUI;
+            }
+        }
 
         protected override void Awake()
         {
