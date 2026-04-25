@@ -112,6 +112,7 @@ namespace Gameplay
                 }
 
                 raindrop.dropValue = Random.Range(minSize, maxSize) * multiplier;
+                raindrop.ApplySize(); // Boyutu görsel olarak uygula
             }
         }
 

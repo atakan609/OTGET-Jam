@@ -435,6 +435,9 @@ namespace UI
 
             foreach (var child in purchasedNode.children)
             {
+                // child veya child.upgradeData null olabilir, güvenli kontrol
+                if (child == null) continue;
+
                 if (!_createdNodes.ContainsKey(child))
                 {
                     CreateNodeUI(child, purchasedNode, positions);
@@ -449,6 +452,8 @@ namespace UI
         {
             foreach (var node in _createdNodes.Keys)
             {
+                // node veya upgradeData null olabilir
+                if (node == null || node.upgradeData == null) continue;
                 if (node.upgradeData.upgradeType == type) return node;
             }
             return null;

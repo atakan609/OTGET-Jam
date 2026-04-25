@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Managers;
-using Gameplay;
 
 namespace Gameplay
 {
-    [RequireComponent(typeof(Collider2D))]
+    // RequireComponent kaldırıldı — collider artık child prefabdan geliyor
     public class BucketController : MonoBehaviour
     {
         [Header("Capacity")]
@@ -15,30 +14,39 @@ namespace Gameplay
         [Header("Magnet")]
         [SerializeField] private float magnetAttractionSpeed = 8f;
 
-        [Header("Sprite per Bucket Level (index = level)")]
-        [SerializeField] private Sprite[] bucketSprites;
+        [Header("Bucket Prefabs per Level (index = level / 2)")]
+        [Tooltip("Her 2 BucketSize level'i için bir prefab. " +
+                 "Prefab'ın içinde SpriteRenderer ve BoxCollider2D bulunmalı. " +
+                 "Collider doğrudan prefab üzerinde kullanılır, parent'a kopyalanmaz.")]
+        [SerializeField] private GameObject[] bucketPrefabs;
 
-        [Header("Collider Width per Bucket Level (index = level)")]
-        [SerializeField] private float[] bucketColliderWidths;
+        [Header("Scale Settings")]
+        [Tooltip("Her 2 level'den biri prefabı büyütür. Artış miktarı.")]
+        [SerializeField] private float _scalePerStep = 0.25f;
 
         // ── State ──────────────────────────────────────────────────────────────
         public float CurrentWater { get; private set; }
-        public float MaxCapacity { get; private set; }
-        public bool IsFull => CurrentWater >= MaxCapacity;
-        public float FillRatio => MaxCapacity > 0 ? CurrentWater / MaxCapacity : 0f;
+        public float MaxCapacity  { get; private set; }
+        public bool  IsFull       => CurrentWater >= MaxCapacity;
+        public float FillRatio    => MaxCapacity > 0 ? CurrentWater / MaxCapacity : 0f;
 
-        public bool IsMagnetized { get; private set; }
-        public float MagnetRange { get; private set; }
+        public bool  IsMagnetized { get; private set; }
+        public float MagnetRange  { get; private set; }
+
+        /// <summary>Idle'dayken true → kova açık ve su toplayabilir.</summary>
+        public bool IsOpen { get; private set; } = true;
 
         private float _magnetTimer;
-        private SpriteRenderer _spriteRenderer;
-        private BoxCollider2D _collider;
+
+        // Görsel / collider referansları (child prefabdan)
+        private SpriteRenderer _spriteRenderer;      // Aktif child'ın SpriteRenderer'ı
+        private BoxCollider2D  _activeChildCollider; // Aktif child'ın BoxCollider2D'si
+        private GameObject     _currentVisual;       // Instantiate edilmiş child objesi
+        private int            _currentPrefabIndex = -1;
 
         // ── Unity ──────────────────────────────────────────────────────────────
         private void Awake()
         {
-            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            _collider = GetComponent<BoxCollider2D>();
             MaxCapacity = baseCapacity;
         }
 
@@ -55,7 +63,6 @@ namespace Gameplay
 
         private void Update()
         {
-            // Mıknatıs geri sayımı
             if (IsMagnetized)
             {
                 _magnetTimer -= Time.deltaTime;
@@ -67,7 +74,6 @@ namespace Gameplay
         {
             if (!IsMagnetized) return;
 
-            // Yarıçap içindeki tüm Raindrop'ları kovaya doğru çek
             Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, MagnetRange);
             foreach (var col in nearby)
             {
@@ -85,18 +91,36 @@ namespace Gameplay
 
         // ── Public API ─────────────────────────────────────────────────────────
 
-        /// <summary>Kovaya su eklemeye çalışır. Kova doluysa false döner.</summary>
+        /// <summary>
+        /// PlayerController tarafından çağrılır.
+        /// true  → idle: kova açık, child collider aktif, su toplayabilir.
+        /// false → koşuyor / stun: kova kapalı, child collider devre dışı.
+        /// </summary>
+        public void SetOpen(bool open)
+        {
+            if (IsOpen == open) return;
+            IsOpen = open;
+
+            // Child prefabın collider'ını aç/kapat
+            if (_activeChildCollider != null)
+                _activeChildCollider.enabled = open;
+
+            // Child prefabın sprite'ını göster/gizle
+            if (_spriteRenderer != null)
+                _spriteRenderer.enabled = open;
+        }
+
+        /// <summary>Kovaya su ekler. Kova kapalı veya doluysa false döner.</summary>
         public bool TryAddWater(float amount)
         {
-            if (IsFull) return false;
+            if (!IsOpen) return false;
+            if (IsFull)  return false;
             CurrentWater = Mathf.Min(CurrentWater + amount, MaxCapacity);
-
-            // CurrencyManager'ı haberdar et
             CurrencyManager.Instance.NotifyWaterChanged();
             return true;
         }
 
-        /// <summary>Kovadaki tüm suyu döndürür ve kovayı sıfırlar (depoya aktarım için).</summary>
+        /// <summary>Belirtilen miktarda suyu kovadan boşaltır (depoya aktarım için).</summary>
         public float DrainWater(float amount)
         {
             float drained = Mathf.Min(amount, CurrentWater);
@@ -105,59 +129,93 @@ namespace Gameplay
             return drained;
         }
 
+        /// <summary>Yıldırım çarptığında belirtilen miktarda suyu sıçratır.</summary>
+        public void SpillWater(float amount)
+        {
+            CurrentWater = Mathf.Max(0f, CurrentWater - amount);
+            CurrencyManager.Instance.NotifyWaterChanged();
+        }
+
         /// <summary>Mıknatısı aktifleştirir.</summary>
         public void ActivateMagnet(float duration, float range)
         {
             IsMagnetized = true;
             _magnetTimer = duration;
-            MagnetRange = range;
+            MagnetRange  = range;
         }
 
         // ── Upgrade ────────────────────────────────────────────────────────────
 
         private void HandleUpgrade(UpgradeType type, int newLevel)
         {
-            if (type == UpgradeType.BucketSize)         ApplyBucketSize(newLevel);
-            if (type == UpgradeType.MagnetDuration)     { /* UpgradeManager'dan okunur, burada saklamaya gerek yok */ }
-            if (type == UpgradeType.MagnetRange)        { }
+            if (type == UpgradeType.BucketSize) ApplyBucketSize(newLevel);
         }
 
         private void RefreshFromUpgrades()
         {
             if (UpgradeManager.Instance == null) return;
-            int bucketLevel = UpgradeManager.Instance.GetLevel(UpgradeType.BucketSize);
-            ApplyBucketSize(bucketLevel);
+            int level = UpgradeManager.Instance.GetLevel(UpgradeType.BucketSize);
+            ApplyBucketSize(level);
         }
 
         private void ApplyBucketSize(int level)
         {
-            // Kapasite
+            // ── Kapasite ────────────────────────────────────────────────────────
             float bonus = UpgradeManager.Instance != null
                 ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.BucketSize)
                 : 0f;
-            MaxCapacity = baseCapacity + bonus;
+            MaxCapacity  = baseCapacity + bonus;
             CurrentWater = Mathf.Min(CurrentWater, MaxCapacity);
 
-            // Collider genişliği
-            if (_collider != null && bucketColliderWidths != null && level < bucketColliderWidths.Length)
+            // ── Prefab yoksa erken çık ──────────────────────────────────────────
+            if (bucketPrefabs == null || bucketPrefabs.Length == 0) return;
+
+            // Her 2 level'de bir prefab değişir:
+            //   level 0 → prefab[0], scale ×1.00
+            //   level 1 → prefab[0], scale ×1.25
+            //   level 2 → prefab[1], scale ×1.00
+            //   level 3 → prefab[1], scale ×1.25
+            int prefabIndex  = Mathf.Clamp(level / 2, 0, bucketPrefabs.Length - 1);
+            int stepInPrefab = level % 2;   // 0 = baz, 1 = büyütülmüş
+
+            GameObject prefab = bucketPrefabs[prefabIndex];
+            if (prefab == null) return;
+
+            // ── Prefab değiştiyse yeniden instantiate et ───────────────────────
+            if (_currentVisual == null || _currentPrefabIndex != prefabIndex)
             {
-                var size = _collider.size;
-                size.x = bucketColliderWidths[level];
-                _collider.size = size;
+                if (_currentVisual != null) Destroy(_currentVisual);
+
+                _currentVisual = Instantiate(prefab, transform);
+                _currentVisual.transform.localPosition = Vector3.zero;
+                _currentVisual.transform.localRotation = Quaternion.identity;
+                _currentPrefabIndex = prefabIndex;
+
+                // Child collider ve sprite referanslarını yenile
+                _activeChildCollider = _currentVisual.GetComponentInChildren<BoxCollider2D>();
+                _spriteRenderer      = _currentVisual.GetComponentInChildren<SpriteRenderer>();
+
+                // Damlaların kovaya kuvvet uygulamaması için trigger'a çevir
+                // (OnTriggerEnter2D hâlâ çalışır, fiziksel itme olmaz)
+                if (_activeChildCollider != null)
+                    _activeChildCollider.isTrigger = true;
             }
 
-            // Sprite
-            if (_spriteRenderer != null && bucketSprites != null && level < bucketSprites.Length)
-            {
-                _spriteRenderer.sprite = bucketSprites[level];
-            }
+            // ── Scale (aynı prefab içinde büyüme) ─────────────────────────────
+            float scaleMult = 1f + stepInPrefab * _scalePerStep;
+            _currentVisual.transform.localScale = Vector3.one * scaleMult;
+
+            // ── Açık/Kapalı durumu yeni child'a uygula ────────────────────────
+            // SetOpen'ın guard'ını bypass etmek için önce IsOpen'ı ters yap
+            bool wasOpen = IsOpen;
+            IsOpen = !wasOpen;           // guard'ı aşmak için
+            SetOpen(wasOpen);            // gerçek değeri tekrar gönder
         }
 
         // ── Debug ──────────────────────────────────────────────────────────────
         private void OnGUI()
         {
-            GUIStyle style = new GUIStyle();
-            style.fontSize = 18;
+            GUIStyle style = new GUIStyle { fontSize = 18 };
             style.normal.textColor = IsFull ? Color.red : Color.cyan;
 
             string magnetInfo = IsMagnetized ? $" [MAG {_magnetTimer:F1}s]" : "";

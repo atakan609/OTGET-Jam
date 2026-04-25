@@ -37,8 +37,8 @@ namespace Gameplay
         {
             SetNextRainTime();
 
-            // Fırtına süresi upgrade'den hesaplanır
-            float baseDuration = 10f;
+            // Fırtına süresi upgrade'den hesaplanır - baz 30 saniye
+            float baseDuration = 30f;
             float bonus = UpgradeManager.Instance != null
                 ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.StormDuration)
                 : 0f;
@@ -115,13 +115,16 @@ namespace Gameplay
                 }
 
                 raindrop.dropValue = Random.Range(minSize, maxSize) * multiplier;
+                raindrop.ApplySize(); // Boyutu görsel olarak uygula
             }
 
-            // Yıldırım şansı: bağımsız rastgele X konumunda yıldırım düşür
+            // Yıldırım şansı: bulutun kendi pozisyonundan çaktır
             if (Random.value < lightningChance && LightningManager.Instance != null)
             {
-                float lightningX = Random.Range(screenLeftX * 0.6f, screenRightX * 0.6f);
-                LightningManager.Instance.SpawnImmediateLightning(lightningX);
+                LightningManager.Instance.SpawnImmediateLightning(
+                    transform.position.x,
+                    transform.position.y
+                );
             }
         }
 

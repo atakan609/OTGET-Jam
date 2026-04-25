@@ -12,14 +12,26 @@ namespace Gameplay
     {
         [Header("Settings")]
         [SerializeField] private float baseCapacity = 100f;
-        [SerializeField] private float baseDrainSpeed = 5f; // Saniyede kovadan depoya geçen su birimi
+        [SerializeField] private float baseDrainSpeed = 5f;
         [SerializeField] private float triggerRadius = 2f;
 
-        public float StoredWater { get; private set; }
-        public float MaxCapacity { get; private set; }
-        public bool IsFull => StoredWater >= MaxCapacity;
+        [Header("Depot Prefabs per Tier")]
+        [Tooltip("index 0 = Başlangıç (level 0-2), index 1 = Orta (level 3-5), index 2 = Gelişmiş (level 6+)")]
+        [SerializeField] private GameObject[] depotPrefabs;
+        [Tooltip("Depo prefabının doğacagı local offset (ana objeye göre).")]
+        [SerializeField] private Vector3 visualOffset = Vector3.zero;
+
+        public float StoredWater  { get; private set; }
+        public float MaxCapacity   { get; private set; }
+        public bool  IsFull        => StoredWater >= MaxCapacity;
 
         private BucketController _drainingBucket;
+        private GameObject _currentVisual;
+        private int _currentPrefabIndex = -1;
+
+        // Kapasite upgrade eşiği → prefab index eşleme
+        // level 0-2 → index 0, level 3-5 → index 1, level 6+ → index 2
+        private static readonly int[] _prefabThresholds = { 0, 3, 6 };
 
         private void Awake()
         {
@@ -92,15 +104,54 @@ namespace Gameplay
 
         private void HandleUpgrade(UpgradeType type, int newLevel)
         {
-            if (type == UpgradeType.DepotCapacity) RefreshFromUpgrades();
+            if (type == UpgradeType.DepotCapacity || type == UpgradeType.BuyWaterDepot)
+                RefreshFromUpgrades();
         }
 
         private void RefreshFromUpgrades()
         {
-            float bonus = UpgradeManager.Instance != null
-                ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.DepotCapacity)
-                : 0f;
+            if (UpgradeManager.Instance == null) return;
+
+            float bonus = UpgradeManager.Instance.GetCurrentValue(UpgradeType.DepotCapacity);
             MaxCapacity = baseCapacity + bonus;
+
+            int level = UpgradeManager.Instance.GetLevel(UpgradeType.DepotCapacity);
+            ApplyDepotVisual(level);
+        }
+
+        /// <summary>
+        /// level 0-2 → prefab[0], level 3-5 → prefab[1], level 6+ → prefab[2]
+        /// </summary>
+        private void ApplyDepotVisual(int level)
+        {
+            if (depotPrefabs == null || depotPrefabs.Length == 0) return;
+
+            // Hangi prefab index'e düşeðini bul (eşiğleri geriden tara)
+            int targetIndex = 0;
+            for (int i = _prefabThresholds.Length - 1; i >= 0; i--)
+            {
+                if (level >= _prefabThresholds[i])
+                {
+                    targetIndex = i;
+                    break;
+                }
+            }
+            targetIndex = Mathf.Clamp(targetIndex, 0, depotPrefabs.Length - 1);
+
+            // Prefab değişmiyorsa dokunma
+            if (targetIndex == _currentPrefabIndex) return;
+
+            GameObject prefab = depotPrefabs[targetIndex];
+            if (prefab == null) return;
+
+            // Eski görseli yok et
+            if (_currentVisual != null) Destroy(_currentVisual);
+
+            // Yeni görseli child olarak ekle
+            _currentVisual = Instantiate(prefab, transform);
+            _currentVisual.transform.localPosition = visualOffset;
+            _currentVisual.transform.localRotation = Quaternion.identity;
+            _currentPrefabIndex = targetIndex;
         }
 
         // ── Debug ─────────────────────────────────────────────────────────────────

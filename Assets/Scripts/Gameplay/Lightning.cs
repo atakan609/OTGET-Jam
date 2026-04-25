@@ -5,136 +5,108 @@ using Managers;
 namespace Gameplay
 {
     /// <summary>
-    /// Prefab yapısına sadık kalarak çalışan yıldırım kontrolcüsü.
-    /// Ana objeyi zemine konumlandırır, çocuk objelerin hiyerarşisine dokunmaz.
+    /// Anlık çakan yıldırım. LightningManager tarafından Initialize çağrılarak kullanılır.
+    /// Oyuncuya çarpınca: stun (blink), kova suyu azaltma.
     /// </summary>
     public class Lightning : MonoBehaviour
     {
         [Header("Timing")]
-        [SerializeField] private float warningDuration = 0.8f;   // Uyarının gösterildiği süre
-        [SerializeField] private float flashDuration = 1f;       // Yıldırımın göründüğü süre
+        [SerializeField] private float warningDuration = 0.8f;
+        [SerializeField] private float flashDuration = 0.15f;
 
         [Header("References")]
-        [SerializeField] private GameObject warningObject;        // Prefab içindeki uyarı objesi
-        [SerializeField] private GameObject lightningBoltObject;  // Prefab içindeki yıldırım objesi
+        [SerializeField] private GameObject warningObject;
+        [SerializeField] private GameObject lightningBoltObject;
 
-        [Header("Detection")]
-        [SerializeField] private float strikeWidth = 0.6f;        // Hasar genişliği
-        [SerializeField] private float strikeHeight = 8f;         // Hasar yüksekliği (Yerden yukarı doğru)
-        [SerializeField] private LayerMask playerLayer;           // Player Layer
+        [Header("Hit Settings")]
+        [SerializeField] private float strikeWidth = 0.6f;
+        [SerializeField] private float strikeHeight = 20f;
+        [SerializeField] private float stunDuration = 1f;
+        [SerializeField] private float waterSpillAmount = 2f;
 
+        // Spawn'da LightningManager tarafından set edilir
         private float _strikeX;
         private float _groundY;
-        private BoxCollider2D _strikeCollider;
-        private bool _isActive = false;
+        private float _cloudY;
 
         private void Awake()
         {
-            _strikeCollider = GetComponent<BoxCollider2D>();
-            if (_strikeCollider != null) _strikeCollider.enabled = false;
+            // Yıldırım görseli bulutların arkasında görünsün
+            foreach (var sr in GetComponentsInChildren<SpriteRenderer>())
+                sr.sortingOrder = -5;
         }
 
-        /// <summary>LightningManager tarafından çağrılır.</summary>
+        /// <summary>LightningManager tarafından Instantiate sonrası çağrılır.</summary>
         public void Initialize(float strikeX, float cloudY, float groundY)
         {
             _strikeX = strikeX;
+            _cloudY  = cloudY;
             _groundY = groundY;
-            
-            // Ana objeyi vuruş (zemin) noktasına yerleştiriyoruz.
-            // Prefab'da uyarı ve yıldırım buna göre hizalanmış olmalıdır.
-            transform.position = new Vector3(_strikeX, _groundY, 0f);
+
+            // Yıldırımı bulutun pozisyonuna yerleştir; görseller oradan aşağı uzanmalı
+            transform.position = new Vector3(_strikeX, _cloudY - lightningBoltObject.transform.position.y, 0f);
         }
 
         private void Start()
         {
-            // Başlangıçta her ikisini de gizle
-            if (warningObject != null) warningObject.SetActive(false);
+            if (warningObject    != null) warningObject.SetActive(false);
             if (lightningBoltObject != null) lightningBoltObject.SetActive(false);
-
             StartCoroutine(LightningSequence());
         }
 
         private IEnumerator LightningSequence()
         {
-            // 1. UYARI FAZI
+            // ── 1. UYARI ──
             if (warningObject != null) warningObject.SetActive(true);
             yield return new WaitForSeconds(warningDuration);
 
-            // 2. YILDIRIM FAZI
-            if (warningObject != null) warningObject.SetActive(false);
+            // ── 2. FLAŞ ──
+            if (warningObject    != null) warningObject.SetActive(false);
             if (lightningBoltObject != null) lightningBoltObject.SetActive(true);
-            
-            if (_strikeCollider != null) _strikeCollider.enabled = true;
-            _isActive = true;
 
-            // 3. HASAR KONTROLÜ
-            CheckPlayerHit();
+            CheckAndHitPlayer();
 
             yield return new WaitForSeconds(flashDuration);
 
-            if (_strikeCollider != null) _strikeCollider.enabled = false;
-            _isActive = false;
-
-            // 4. YOK OLMA
+            // ── 3. YOK OL ──
             Destroy(gameObject);
         }
 
-        private void OnTriggerEnter2D(Collider2D other)
+        private void CheckAndHitPlayer()
         {
-            if (!_isActive) return;
-            if (other.CompareTag("Player"))
-            {
-                var bucket = other.GetComponentInChildren<BucketController>();
-                if (bucket == null) bucket = other.GetComponent<BucketController>();
+            // Buluttan zeminine kadar dikey bir kutu tarar
+            float height   = Mathf.Abs(_cloudY - _groundY);
+            float centerY  = _groundY + height * 0.5f;
+            Vector2 center = new Vector2(_strikeX, centerY);
+            Vector2 size   = new Vector2(strikeWidth, height > 0.1f ? height : strikeHeight);
 
+            Collider2D[] hits = Physics2D.OverlapBoxAll(center, size, 0f);
+            foreach (var col in hits)
+            {
+                if (!col.CompareTag("Player")) continue;
+
+                // Stun
+                var player = col.GetComponent<PlayerController>();
+                if (player != null)
+                    player.ApplyLightningStun(stunDuration);
+
+                // Su azalt
+                var bucket = col.GetComponentInChildren<BucketController>()
+                          ?? col.GetComponent<BucketController>();
                 if (bucket != null)
-                {
-                    float dur = LightningManager.Instance != null 
-                        ? LightningManager.Instance.GetMagnetDuration() : 3f;
-                    float rng = LightningManager.Instance != null 
-                        ? LightningManager.Instance.GetMagnetRange() : 4f;
-                    
-                    bucket.ActivateMagnet(dur, rng);
-                }
-            }
-        }
+                    bucket.SpillWater(waterSpillAmount);
 
-        private void CheckPlayerHit()
-        {
-            // Zemin noktasından yukarı doğru bir kutu ile oyuncu var mı bakıyoruz
-            Vector2 boxCenter = new Vector2(_strikeX, _groundY + (strikeHeight * 0.5f));
-            Vector2 boxSize = new Vector2(strikeWidth, strikeHeight);
-
-            Collider2D[] hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0f);
-            foreach (var hit in hits)
-            {
-                if (hit.CompareTag("Player"))
-                {
-                    var bucket = hit.GetComponentInChildren<BucketController>();
-                    if (bucket == null) bucket = hit.GetComponent<BucketController>();
-
-                    if (bucket != null)
-                    {
-                        float duration = LightningManager.Instance != null 
-                            ? LightningManager.Instance.GetMagnetDuration() : 3f;
-                        float range = LightningManager.Instance != null 
-                            ? LightningManager.Instance.GetMagnetRange() : 4f;
-                        
-                        bucket.ActivateMagnet(duration, range);
-                    }
-                    break;
-                }
+                break; // Aynı oyuncuya birden fazla defa vurma
             }
         }
 
         private void OnDrawGizmosSelected()
         {
-            // Hasar alanını editörde sarı bir kutu olarak gösterir
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireCube(
-                new Vector3(_strikeX, _groundY + (strikeHeight * 0.5f), 0f),
-                new Vector3(strikeWidth, strikeHeight, 0f)
-            );
+            float height  = Mathf.Abs(_cloudY - _groundY);
+            float centerY = _groundY + height * 0.5f;
+            Gizmos.DrawWireCube(new Vector3(_strikeX, centerY, 0f),
+                                new Vector3(strikeWidth, height > 0.1f ? height : strikeHeight, 0f));
         }
     }
 }

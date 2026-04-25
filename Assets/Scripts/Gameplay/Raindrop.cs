@@ -10,6 +10,12 @@ namespace Gameplay
         [SerializeField] public float dropValue = 1f;
         [SerializeField] public bool isGolden = false;
 
+        [Header("Visual Scale")]
+        [Tooltip("dropValue = 1 olduğunda damlanın referans boyutu. Değer büyüdükçe bu oran'a göre scale'lenir.")]
+        [SerializeField] private float referenceDropValue = 1f; // dropValue bu değere eşitken scale = 1x
+        [SerializeField] private float minScale = 0.4f;         // En küçük görsel boyut
+        [SerializeField] private float maxScale = 2.5f;         // En büyük görsel boyut
+
         [Header("Wind Effect")]
         [SerializeField] private float windStrength = 2f;
         [SerializeField] private float windChangeSpeed = 0.5f;
@@ -21,6 +27,17 @@ namespace Gameplay
         {
             _rb = GetComponent<Rigidbody2D>();
             _noiseOffset = Random.Range(0f, 100f);
+        }
+
+        /// <summary>
+        /// Cloud/StormCloud tarafından dropValue atandıktan sonra çağrılmalı.
+        /// Damlanın görsel boyutunu dropValue ile orantılı hale getirir.
+        /// </summary>
+        public void ApplySize()
+        {
+            float ratio = referenceDropValue > 0f ? dropValue / referenceDropValue : 1f;
+            float scale = Mathf.Clamp(ratio, minScale, maxScale);
+            transform.localScale = new Vector3(scale, scale, 1f);
         }
 
         private void OnTriggerEnter2D(Collider2D collision)

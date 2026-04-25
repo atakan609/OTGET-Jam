@@ -43,6 +43,45 @@ namespace Managers
             ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.RainingCloudChance)
             : 0f));
 
+        // ── Public API ────────────────────────────────────────────────────────
+
+        /// <summary>LightningManager'ın yıldırım spawn noktası için kullandığı aktif bulut listesi.</summary>
+        public System.Collections.Generic.List<Cloud> GetActiveClouds()
+        {
+            _activeClouds.RemoveAll(item => item == null);
+            return _activeClouds;
+        }
+
+        /// <summary>Debug: Ekranın ortasına storm cloud yerleştirir.</summary>
+        public void SpawnDebugStormCloud()
+        {
+            if (stormCloudPrefab == null) return;
+            // Ekranın ortasından biraz rastgele bir Y'de çıkar
+            Vector3 pos = new Vector3(0f, Random.Range(minSpawnY, maxSpawnY), 0f);
+            GameObject obj = Instantiate(stormCloudPrefab, pos, Quaternion.identity, transform);
+            obj.transform.localScale = Vector3.one * maxCloudScale * 1.4f;
+            var sc = obj.GetComponent<StormCloud>();
+            if (sc != null) sc.moveDirection = Random.value > 0.5f ? 1f : -1f;
+        }
+
+        /// <summary>Debug: Ekranın ortasına normal bir bulut yerleştirir.</summary>
+        public void SpawnDebugCloud()
+        {
+            if (cloudPrefabs == null || cloudPrefabs.Length == 0) return;
+            Vector3 pos = new Vector3(0f, Random.Range(minSpawnY, maxSpawnY), 0f);
+            GameObject selectedPrefab = cloudPrefabs[Random.Range(0, cloudPrefabs.Length)];
+            GameObject obj = Instantiate(selectedPrefab, pos, Quaternion.identity, transform);
+            float s = Random.Range(minCloudScale, maxCloudScale);
+            obj.transform.localScale = new Vector3(s, s, 1f);
+            Cloud cloud = obj.GetComponent<Cloud>();
+            if (cloud != null)
+            {
+                cloud.moveDirection = Random.value > 0.5f ? 1f : -1f;
+                cloud.isRaining = true;
+                _activeClouds.Add(cloud);
+            }
+        }
+
         // ── Unity ─────────────────────────────────────────────────────────────
 
         protected override void Awake()
