@@ -5,79 +5,102 @@ using Managers;
 namespace Gameplay
 {
     /// <summary>
-    /// Gökyüzünden düşen yıldırım objesi.
-    /// Düşmeden önce uyarı çizgisi gösterir, oyuncuya değerse kovayı mıknatıslar.
+    /// Prefab yapısına sadık kalarak çalışan yıldırım kontrolcüsü.
+    /// Ana objeyi zemine konumlandırır, çocuk objelerin hiyerarşisine dokunmaz.
     /// </summary>
     public class Lightning : MonoBehaviour
     {
-        [Header("Movement")]
-        [SerializeField] private float fallSpeed = 15f;
+        [Header("Timing")]
+        [SerializeField] private float warningDuration = 0.8f;   // Uyarının gösterildiği süre
+        [SerializeField] private float flashDuration = 1f;       // Yıldırımın göründüğü süre
 
-        [Header("Warning")]
-        [SerializeField] private float warningDuration = 0.8f; // Düşmeden önce uyarı süresi
-        [SerializeField] private SpriteRenderer warningSprite;  // Dikey çizgi / flash sprite
+        [Header("References")]
+        [SerializeField] private GameObject warningObject;        // Prefab içindeki uyarı objesi
+        [SerializeField] private GameObject lightningBoltObject;  // Prefab içindeki yıldırım objesi
 
-        [Header("Bounds")]
-        [SerializeField] private float destroyY = -12f;
+        [Header("Detection")]
+        [SerializeField] private float strikeWidth = 0.6f;        // Hasar genişliği
+        [SerializeField] private float strikeHeight = 8f;         // Hasar yüksekliği (Yerden yukarı doğru)
+        [SerializeField] private LayerMask playerLayer;           // Player Layer
 
-        private bool _falling = false;
-        private Rigidbody2D _rb;
+        private float _strikeX;
+        private float _groundY;
 
-        private void Awake()
+        /// <summary>LightningManager tarafından çağrılır.</summary>
+        public void Initialize(float strikeX, float cloudY, float groundY)
         {
-            _rb = GetComponent<Rigidbody2D>();
+            _strikeX = strikeX;
+            _groundY = groundY;
+            
+            // Ana objeyi vuruş (zemin) noktasına yerleştiriyoruz.
+            // Prefab'da uyarı ve yıldırım buna göre hizalanmış olmalıdır.
+            transform.position = new Vector3(_strikeX, _groundY, 0f);
         }
 
         private void Start()
         {
-            StartCoroutine(WarningThenFall());
+            // Başlangıçta her ikisini de gizle
+            if (warningObject != null) warningObject.SetActive(false);
+            if (lightningBoltObject != null) lightningBoltObject.SetActive(false);
+
+            StartCoroutine(LightningSequence());
         }
 
-        private IEnumerator WarningThenFall()
+        private IEnumerator LightningSequence()
         {
-            // Uyarı göster, yıldırım henüz düşmüyor
-            if (warningSprite != null) warningSprite.enabled = true;
+            // 1. UYARI FAZI
+            if (warningObject != null) warningObject.SetActive(true);
             yield return new WaitForSeconds(warningDuration);
-            if (warningSprite != null) warningSprite.enabled = false;
 
-            _falling = true;
+            // 2. YILDIRIM FAZI
+            if (warningObject != null) warningObject.SetActive(false);
+            if (lightningBoltObject != null) lightningBoltObject.SetActive(true);
+
+            // 3. HASAR KONTROLÜ
+            CheckPlayerHit();
+
+            yield return new WaitForSeconds(flashDuration);
+
+            // 4. YOK OLMA
+            Destroy(gameObject);
         }
 
-        private void FixedUpdate()
+        private void CheckPlayerHit()
         {
-            if (!_falling || _rb == null) return;
-            _rb.linearVelocity = new Vector2(0f, -fallSpeed);
-        }
+            // Zemin noktasından yukarı doğru bir kutu ile oyuncu var mı bakıyoruz
+            Vector2 boxCenter = new Vector2(_strikeX, _groundY + (strikeHeight * 0.5f));
+            Vector2 boxSize = new Vector2(strikeWidth, strikeHeight);
 
-        private void Update()
-        {
-            if (transform.position.y < destroyY) Destroy(gameObject);
-        }
-
-        private void OnTriggerEnter2D(Collider2D other)
-        {
-            if (!_falling) return;
-
-            if (other.CompareTag("Player"))
+            Collider2D[] hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0f);
+            foreach (var hit in hits)
             {
-                // Kovayı mıknatısla
-                var bucket = other.GetComponentInChildren<BucketController>();
-                if (bucket != null)
+                if (hit.CompareTag("Player"))
                 {
-                    float duration = LightningManager.Instance != null
-                        ? LightningManager.Instance.GetMagnetDuration()
-                        : 3f;
-                    float range = LightningManager.Instance != null
-                        ? LightningManager.Instance.GetMagnetRange()
-                        : 4f;
-                    bucket.ActivateMagnet(duration, range);
+                    var bucket = hit.GetComponentInChildren<BucketController>();
+                    if (bucket == null) bucket = hit.GetComponent<BucketController>();
+
+                    if (bucket != null)
+                    {
+                        float duration = LightningManager.Instance != null 
+                            ? LightningManager.Instance.GetMagnetDuration() : 3f;
+                        float range = LightningManager.Instance != null 
+                            ? LightningManager.Instance.GetMagnetRange() : 4f;
+                        
+                        bucket.ActivateMagnet(duration, range);
+                    }
+                    break;
                 }
-                Destroy(gameObject);
             }
-            else if (!other.CompareTag("Enemy")) // Başka şeylere çarparsa yok ol
-            {
-                Destroy(gameObject);
-            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            // Hasar alanını editörde sarı bir kutu olarak gösterir
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireCube(
+                new Vector3(_strikeX, _groundY + (strikeHeight * 0.5f), 0f),
+                new Vector3(strikeWidth, strikeHeight, 0f)
+            );
         }
     }
 }
