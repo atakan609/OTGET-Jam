@@ -13,6 +13,7 @@ namespace Gameplay
         [Header("Timing")]
         [SerializeField] private float warningDuration = 0.8f;
         [SerializeField] private float flashDuration = 0.15f;
+        [SerializeField] private float soundDelay = 0.2f; // Sesi ne kadar sonra çalacak
 
         [Header("References")]
         [SerializeField] private GameObject warningObject;
@@ -64,12 +65,29 @@ namespace Gameplay
             if (warningObject    != null) warningObject.SetActive(false);
             if (lightningBoltObject != null) lightningBoltObject.SetActive(true);
 
+            // Yıldırım SFX Delay ile Çal
+            StartCoroutine(PlaySoundWithDelay(soundDelay));
+
             CheckAndHitPlayer();
 
             yield return new WaitForSeconds(flashDuration);
+            
+            // Flaş bitti, görseli gizle
+            if (lightningBoltObject != null) lightningBoltObject.SetActive(false);
 
-            // ── 3. YOK OL ──
+            // ── 3. YOK OL (Sesin çalmasını bekle) ──
+            if (soundDelay > flashDuration)
+            {
+                yield return new WaitForSeconds(soundDelay - flashDuration);
+            }
+
             Destroy(gameObject);
+        }
+
+        private IEnumerator PlaySoundWithDelay(float delay)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);
+            Managers.SoundManager.Instance?.PlayLightningSfx();
         }
 
         private void CheckAndHitPlayer()

@@ -71,26 +71,31 @@ namespace Managers
         {
             if (lightningPrefab == null) return;
 
-            // Bulutun tam X'i üzerinden aşağıya Raycast at, zemin Y'sini bul
-            float groundY = FindGroundY(cloudX, cloudY);
+            // Rastgele X ofseti (bulutun hep merkezinden çıkmasın diye)
+            float randomX = cloudX + Random.Range(-3f, 3f);
 
-            GameObject obj = Instantiate(lightningPrefab, new Vector3(cloudX, cloudY, 0f), Quaternion.identity);
-            Lightning lightning = obj.GetComponent<Lightning>();
-            if (lightning != null)
-                lightning.Initialize(cloudX, cloudY, groundY);
-        }
-
-        private float FindGroundY(float x, float fromY)
-        {
-            // Bulutun konumundan aşağıya Raycast: yalnızca Ground layer'a çarpar
+            // 15 birimlik aşağı doğru raycast at (Sadece spawn şartı)
             RaycastHit2D hit = Physics2D.Raycast(
-                new Vector2(x, fromY),
+                new Vector2(randomX, cloudY),
                 Vector2.down,
-                raycastMaxDistance,
+                15f, // Sadece 15 birim uzağa kadar bakar
                 groundLayer
             );
 
-            return hit.collider != null ? hit.point.y : fallbackGroundY;
+            // Eğer zemin bulamazsa çık (spawn iptal)
+            if (hit.collider == null)
+            {
+                return;
+            }
+
+            // "Yıldırımların konumu vb hiçbir şeyi bu raycast'e bağlama"
+            // Raycast sadece şart sağlasın diye kullanıldı, pozisyonlar kendi fallback'imizden devam eder
+            float groundY = fallbackGroundY;
+
+            GameObject obj = Instantiate(lightningPrefab, new Vector3(randomX, cloudY, 0f), Quaternion.identity);
+            Lightning lightning = obj.GetComponent<Lightning>();
+            if (lightning != null)
+                lightning.Initialize(randomX, cloudY, groundY);
         }
 
         private void ScheduleNext()

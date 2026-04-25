@@ -22,6 +22,7 @@ namespace Gameplay
         private float _horizontalInput;
         private float _currentMoveSpeed;
         private bool _isStunned;
+        private float _idleTimer; // idle kalındığında süreyi tutar
 
         private void Awake()
         {
@@ -62,9 +63,21 @@ namespace Gameplay
 
             FlipCharacter();
 
-            // Hareket ediyorsa kova kapalı, idle'daysa açık
-            bool idle = Mathf.Abs(_horizontalInput) < 0.01f;
-            Bucket?.SetOpen(idle);
+            // Hareket ediyorsa kova kapalı, idle'daysa 0.1 saniye sonra açık
+            bool isIdle = Mathf.Abs(_horizontalInput) < 0.01f;
+            if (isIdle)
+            {
+                _idleTimer += Time.deltaTime;
+                if (_idleTimer >= 0.1f)
+                {
+                    Bucket?.SetOpen(true);
+                }
+            }
+            else
+            {
+                _idleTimer = 0f;
+                Bucket?.SetOpen(false);
+            }
         }
 
         private void FlipCharacter()
