@@ -301,10 +301,10 @@ namespace UI
                 layoutParameters
             );
 
-            // 2. Parent-Child ilişkilerini kur ve çizgileri yarat
-            DrawConnections(treeData.rootNode, positions, 1);
+            // 2. Başlangıç bağlantıları artık CreateNodeUI içinde veya dinamik spawn sırasında çizilecek
+            // DrawConnections(treeData.rootNode, positions, 1);
 
-            // 3. Node'ları oluştur
+            // 3. Node'ları oluştur (Sadece alınanlar ve onların bir alt kademesi oluşturulacak)
             CreateNodeUI(treeData.rootNode, null, positions);
 
             // 4. Content boyutunu sınırla (ScrollView'in dışarı taşmaması için)
@@ -346,6 +346,7 @@ namespace UI
                 return;
 
             GameObject obj = Instantiate(nodePrefab, contentTree);
+            obj.transform.SetAsLastSibling(); // Node'lar daima en üstte kalsın
             var rect = obj.GetComponent<RectTransform>();
             rect.anchoredPosition = positions[node];
             _nodeRects[node] = rect;
@@ -357,12 +358,19 @@ namespace UI
                 _createdNodes[node] = nodeUI;
             }
 
-            // Child'lara devam
+            // Child'lara devam: Sadece bu node satın alınmışsa child'ları oluştur
             if (node.children != null)
             {
-                foreach (var child in node.children)
+                bool purchased = UpgradeManager.Instance.GetLevel(node.upgradeData.upgradeType) > 0;
+                bool isRoot = (node == treeData.rootNode);
+
+                if (purchased || isRoot)
                 {
-                    CreateNodeUI(child, node, positions);
+                    foreach (var child in node.children)
+                    {
+                        CreateNodeUI(child, node, positions);
+                        CreateConnection(node, child, positions);
+                    }
                 }
             }
         }
@@ -414,6 +422,102 @@ namespace UI
             {
                 node.RefreshState();
             }
+
+            SpawnNewChildren(type);
+        }
+
+        private void SpawnNewChildren(UpgradeType purchasedType)
+        {
+            UpgradeNodeDataSO purchasedNode = FindNodeByType(purchasedType);
+            if (purchasedNode == null || purchasedNode.children == null) return;
+
+            var positions = UpgradeTreeLayoutEngine.CalculatePositions(treeData.rootNode, layoutParameters);
+
+            foreach (var child in purchasedNode.children)
+            {
+                if (!_createdNodes.ContainsKey(child))
+                {
+                    CreateNodeUI(child, purchasedNode, positions);
+                    CreateConnection(purchasedNode, child, positions);
+                }
+            }
+
+            RecalculateContentSize(positions);
+        }
+
+        private UpgradeNodeDataSO FindNodeByType(UpgradeType type)
+        {
+            foreach (var node in _createdNodes.Keys)
+            {
+                if (node.upgradeData.upgradeType == type) return node;
+            }
+            return null;
+        }
+
+        private void CreateConnection(UpgradeNodeDataSO parent, UpgradeNodeDataSO child, Dictionary<UpgradeNodeDataSO, Vector2> positions)
+        {
+            // Zaten bağlantı var mı kontrol et
+            foreach (var conn in _connections)
+            {
+                if (conn.parent == parent && conn.child == child) return;
+            }
+
+            // Derinlik bul (Root'tan itibaren)
+            int depth = GetDepth(parent);
+            float maxDist = depth == 1 ? layoutParameters.baseRadius : layoutParameters.radiusStep;
+
+            RectTransform lineRect = null;
+            if (linePrefab != null)
+            {
+                GameObject lineObj = Instantiate(linePrefab, contentTree);
+                lineObj.transform.SetAsFirstSibling(); // Çizgiler daima en arkada kalsın
+                lineRect = lineObj.GetComponent<RectTransform>();
+                
+                // İlk pozisyonu tahmini atayalım, ApplyLivePhysics onu toparlar
+                if (_nodeRects.ContainsKey(parent) && _nodeRects.ContainsKey(child))
+                {
+                    Vector2 pParent = _nodeRects[parent].anchoredPosition;
+                    Vector2 pChild = _nodeRects[child].anchoredPosition;
+                    Vector2 dir = pChild - pParent;
+                    lineRect.anchoredPosition = pParent + (dir / 2f);
+                    float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                    lineRect.rotation = Quaternion.Euler(0, 0, angle);
+                    lineRect.sizeDelta = new Vector2(dir.magnitude, lineRect.sizeDelta.y);
+                }
+            }
+
+            _connections.Add(new TreeConnection
+            {
+                parent = parent,
+                child = child,
+                lineRect = lineRect,
+                maxDist = maxDist,
+            });
+        }
+
+        private int GetDepth(UpgradeNodeDataSO node)
+        {
+            if (node == treeData.rootNode) return 1;
+            // Kaba bir tahmin:
+            return 2;
+        }
+
+        private void RecalculateContentSize(Dictionary<UpgradeNodeDataSO, Vector2> positions)
+        {
+            float maxExtentsX = 0f;
+            float maxExtentsY = 0f;
+            foreach (var pos in positions.Values)
+            {
+                if (Mathf.Abs(pos.x) > maxExtentsX) maxExtentsX = Mathf.Abs(pos.x);
+                if (Mathf.Abs(pos.y) > maxExtentsY) maxExtentsY = Mathf.Abs(pos.y);
+            }
+
+            float paddingX = 400f;
+            float paddingY = 800f;
+            float totalSizeX = (maxExtentsX * 2f) + paddingX;
+            float totalSizeY = (maxExtentsY * 2f) + paddingY;
+
+            contentTree.sizeDelta = new Vector2(totalSizeX, totalSizeY);
         }
 
         // Ağacı baştan kurdurma
@@ -434,9 +538,10 @@ namespace UI
 
             if (tooltipDescText != null)
             {
-                // Eğer UpgradeDataSO'da description alanı varsa eklenebilir. Şu an yoksa sadece boş bırakıyoruz veya adı yazıyoruz.
-                // data.description gibi bir alan eklenebilir, şimdilik placeholder:
-                tooltipDescText.text = $"Level: {currentLevel}/{data.maxLevel}";
+                if (data.isInfinite)
+                    tooltipDescText.text = $"Level: {currentLevel}";
+                else
+                    tooltipDescText.text = $"Level: {currentLevel}/{data.maxLevel}";
             }
 
             if (tooltipCostText != null)
@@ -444,7 +549,7 @@ namespace UI
                 if (isMax)
                     tooltipCostText.text = "Cost: MAX";
                 else
-                    tooltipCostText.text = $"Cost: {nextCost}";
+                    tooltipCostText.text = $"Cost: {nextCost} mL";
             }
         }
 

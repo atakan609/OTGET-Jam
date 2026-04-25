@@ -112,7 +112,7 @@ namespace Gameplay
             style.normal.textColor = Color.green;
 
             GUILayout.BeginArea(new Rect(20, 80, 300, 40));
-            GUILayout.Label($"Depo: {StoredWater:F1} / {MaxCapacity:F0}", style);
+            GUILayout.Label($"Depo: {StoredWater:F1} / {MaxCapacity:F0} mL", style);
             GUILayout.EndArea();
         }
 

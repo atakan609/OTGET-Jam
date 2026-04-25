@@ -3,7 +3,9 @@ namespace Gameplay
     public enum UpgradeType
     {
         // --- Yağmur & Bulut ---
-        DropValue,              // Her damlanın değeri
+        DropMultiplier,         // Tüm damla değerlerine uygulanan çarpan (base 1.0)
+        MinDropSize,            // Damla boyutu alt sınırı
+        MaxDropSize,            // Damla boyutu üst sınırı
         RainFrequency,          // Yağmur sıklığı (interval azalır)
         RainingCloudChance,     // Yağmurlu bulut oranı
         CloudCount,             // Ekrandaki bulut sayısı
@@ -23,6 +25,7 @@ namespace Gameplay
         MagnetRange,            // Mıknatıs çekim yarıçapı
 
         // --- Depo ---
+        BuyWaterDepot,          // Depo binasını aktif hale getirir
         DepotCapacity,          // Depodaki max su kapasitesi
         DepotDrainSpeed,        // Kovadan depoya su aktarım hızı
         AutoCollectorCount,     // Yerleştirilebilecek sabit kova sayısı
@@ -35,6 +38,13 @@ namespace Gameplay
         ComboMaxMultiplier,     // Kombo sistemi max çarpan
         CriticalChance,         // Çift para şansı
         InterestRate,           // Toplam currency üzerinden saniyede % faiz
-        PassiveIncome           // Saniyede otomatik para kazanımı
+        PassiveIncome,          // Saniyede otomatik para kazanımı
+
+        // --- Pasif Gelir Üreteçleri (Generators) ---
+        GeneratorWell,          // Kuyu - pasif mL/sn
+        GeneratorGroundwater,   // Yeraltı Suyu Pompası - pasif mL/sn
+        GeneratorRainHarvester, // Yağmur Hasadı Sistemi - pasif mL/sn
+        GeneratorCondenser,     // Nem Yoğuşturucu - pasif mL/sn
+        GeneratorCloudSeeder    // Bulut Tohumlayıcı İstasyon - pasif mL/sn
     }
 }

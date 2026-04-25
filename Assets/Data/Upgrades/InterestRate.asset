@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Interest Rate
   description: 
-  upgradeType: 21
-  maxLevel: 6
-  baseCost: 100
-  costMultiplier: 2.5
+  upgradeType: 24
+  maxLevel: 5
+  isInfinite: 0
+  baseCost: 40
+  costMultiplier: 1.8
   baseValue: 0
-  valuePerLevel: 0.0005
+  valuePerLevel: 0.005

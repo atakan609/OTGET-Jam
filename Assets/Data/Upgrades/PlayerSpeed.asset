@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Player Speed
   description: 
-  upgradeType: 8
-  maxLevel: 8
-  baseCost: 20
-  costMultiplier: 1.5
+  upgradeType: 10
+  maxLevel: 6
+  isInfinite: 0
+  baseCost: 10
+  costMultiplier: 1.4
   baseValue: 0
-  valuePerLevel: 1.5
+  valuePerLevel: 1

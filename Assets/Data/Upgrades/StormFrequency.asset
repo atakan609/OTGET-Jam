@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Storm Frequency
   description: 
-  upgradeType: 5
-  maxLevel: 5
-  baseCost: 40
-  costMultiplier: 1.8
+  upgradeType: 7
+  maxLevel: 6
+  isInfinite: 0
+  baseCost: 15
+  costMultiplier: 1.5
   baseValue: 0
-  valuePerLevel: 10
+  valuePerLevel: 1

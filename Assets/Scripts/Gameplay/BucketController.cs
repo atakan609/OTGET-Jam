@@ -162,7 +162,7 @@ namespace Gameplay
 
             string magnetInfo = IsMagnetized ? $" [MAG {_magnetTimer:F1}s]" : "";
             GUILayout.BeginArea(new Rect(20, 50, 300, 60));
-            GUILayout.Label($"Kova: {CurrentWater:F1} / {MaxCapacity:F0}{magnetInfo}", style);
+            GUILayout.Label($"Kova: {CurrentWater:F1} / {MaxCapacity:F0} mL{magnetInfo}", style);
             GUILayout.EndArea();
         }
 

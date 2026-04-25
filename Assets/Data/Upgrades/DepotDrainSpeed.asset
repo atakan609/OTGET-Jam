@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Depot Drain Speed
   description: 
-  upgradeType: 13
-  maxLevel: 5
-  baseCost: 20
-  costMultiplier: 1.5
+  upgradeType: 16
+  maxLevel: 6
+  isInfinite: 0
+  baseCost: 15
+  costMultiplier: 1.4
   baseValue: 0
   valuePerLevel: 2

@@ -122,7 +122,7 @@ namespace Managers
             float mult = GlobalMultiplier * (ComboManager.Instance != null ? ComboManager.Instance.Multiplier : 1f);
 
             GUILayout.BeginArea(new Rect(20, 20, 350, 40));
-            GUILayout.Label($"💧 {TotalCurrency:F1}  (K:{GetBucketWater():F1} + D:{GetDepotWater():F1})  ×{mult:F2}", style);
+            GUILayout.Label($"{TotalCurrency:F1} mL  (K:{GetBucketWater():F1} + D:{GetDepotWater():F1})  ×{mult:F2}", style);
             GUILayout.EndArea();
         }
     }

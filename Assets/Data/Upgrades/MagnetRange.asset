@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Magnet Range
   description: 
-  upgradeType: 11
+  upgradeType: 13
   maxLevel: 5
+  isInfinite: 0
   baseCost: 30
-  costMultiplier: 1.6
+  costMultiplier: 1.5
   baseValue: 0
-  valuePerLevel: 0.5
+  valuePerLevel: 1

@@ -27,8 +27,7 @@ namespace Managers
         protected override void Awake()
         {
             base.Awake();
-            BuildLookup();
-            BuildTreeLookup();
+            EnsureInitialized();
         }
 
         private void BuildTreeLookup()
@@ -39,11 +38,17 @@ namespace Managers
 
         private void TraverseNode(UpgradeNodeDataSO node)
         {
-            if (node == null || node.children == null) return;
+            if (node == null || node.upgradeData == null) return;
+
+            // Eğer bu upgrade verisi listede (upgrades[]) yoksa bile ağaçta olduğu için lookup'a ekleyelim
+            // Daima ağaçtaki veriyi baz alması için eziyoruz (eski inspector referanslarına karşı)
+            _dataLookup[node.upgradeData.upgradeType] = node.upgradeData;
+
+            if (node.children == null) return;
 
             foreach (var child in node.children)
             {
-                if (child != null && child.upgradeData != null && node.upgradeData != null)
+                if (child != null && child.upgradeData != null)
                 {
                     _parentLookup[child.upgradeData.upgradeType] = node.upgradeData.upgradeType;
                     TraverseNode(child); // Recursive
@@ -57,7 +62,11 @@ namespace Managers
             foreach (var data in upgrades)
             {
                 if (data == null) continue;
-                _dataLookup[data.upgradeType] = data;
+                // Sadece daha önceden (ağaçtan) eklenmemişse ekle. Ağaç verisi daha önceliklidir.
+                if (!_dataLookup.ContainsKey(data.upgradeType))
+                {
+                    _dataLookup[data.upgradeType] = data;
+                }
                 if (!_levels.ContainsKey(data.upgradeType))
                     _levels[data.upgradeType] = 0;
             }
@@ -66,15 +75,36 @@ namespace Managers
         // ─── PUBLIC API ────────────────────────────────────────────────────────
 
         /// <summary>Upgrade satın almayı dener. Para yeterliyse, kilidi açıksa ve max seviye değilse başarılı döner.</summary>
+        private bool _isInitialized = false;
+
+        private void EnsureInitialized()
+        {
+            if (_isInitialized) return;
+            // Önce ağacı tara (ağaçtaki datalar öncelikli), sonra listeyi tara
+            BuildTreeLookup();
+            BuildLookup();
+            _isInitialized = true;
+        }
+
+        /// <summary>Eğer data lookup içinde yoksa dinamik olarak ekler.</summary>
+        public void RegisterUpgradeData(UpgradeDataSO data)
+        {
+            EnsureInitialized();
+            if (data == null) return;
+            // Daima güncel olanı (UI'dan geleni) kullan
+            _dataLookup[data.upgradeType] = data;
+        }
+
         public bool TryPurchaseUpgrade(UpgradeType type)
         {
+            EnsureInitialized();
             if (!_dataLookup.TryGetValue(type, out var data)) return false;
 
             // PARENT KİLİDİ KONTROLÜ
             if (!IsUnlocked(type)) return false;
 
             int currentLevel = GetLevel(type);
-            if (currentLevel >= data.maxLevel) return false;
+            if (!data.isInfinite && currentLevel >= data.maxLevel) return false;
 
             int cost = data.GetCost(currentLevel);
             if (!CurrencyManager.Instance.SpendCurrency(cost)) return false;
@@ -87,12 +117,14 @@ namespace Managers
         /// <summary>Mevcut upgrade seviyesini döndürür.</summary>
         public int GetLevel(UpgradeType type)
         {
+            EnsureInitialized();
             return _levels.TryGetValue(type, out int lvl) ? lvl : 0;
         }
 
         /// <summary>Parent upgrade satın alınmış mı kontrol eder (kilidi açık mı?).</summary>
         public bool IsUnlocked(UpgradeType type)
         {
+            EnsureInitialized();
             // Eğer treeData hiç verilmemişse kilit sistemi devre dışı sayılır.
             if (treeData == null || treeData.rootNode == null) return true;
 
@@ -106,6 +138,7 @@ namespace Managers
         /// <summary>Mevcut seviyeye göre upgrade değerini döndürür.</summary>
         public float GetCurrentValue(UpgradeType type)
         {
+            EnsureInitialized();
             if (!_dataLookup.TryGetValue(type, out var data)) return 0f;
             return data.GetValue(GetLevel(type));
         }
@@ -113,16 +146,19 @@ namespace Managers
         /// <summary>Bir sonraki seviyenin maliyetini döndürür. Max seviyedeyse -1 döner.</summary>
         public int GetNextCost(UpgradeType type)
         {
+            EnsureInitialized();
             if (!_dataLookup.TryGetValue(type, out var data)) return -1;
             int currentLevel = GetLevel(type);
-            if (currentLevel >= data.maxLevel) return -1;
+            if (!data.isInfinite && currentLevel >= data.maxLevel) return -1;
             return data.GetCost(currentLevel);
         }
 
         /// <summary>Upgrade maksimum seviyede mi?</summary>
         public bool IsMaxLevel(UpgradeType type)
         {
+            EnsureInitialized();
             if (!_dataLookup.TryGetValue(type, out var data)) return false;
+            if (data.isInfinite) return false;
             return GetLevel(type) >= data.maxLevel;
         }
 
@@ -148,7 +184,7 @@ namespace Managers
             {
                 if (data == null) continue;
                 int lvl = GetLevel(data.upgradeType);
-                string maxTag = lvl >= data.maxLevel ? " [MAX]" : $" (next: {GetNextCost(data.upgradeType)} 💧)";
+                string maxTag = lvl >= data.maxLevel ? " [MAX]" : $" (next: {GetNextCost(data.upgradeType)} mL)";
                 GUILayout.Label($"{data.upgradeName}: Lv{lvl}/{data.maxLevel}{maxTag}", style);
             }
             GUILayout.EndArea();

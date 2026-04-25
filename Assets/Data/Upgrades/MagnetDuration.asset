@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Magnet Duration
   description: 
-  upgradeType: 10
-  maxLevel: 6
+  upgradeType: 12
+  maxLevel: 5
+  isInfinite: 0
   baseCost: 25
-  costMultiplier: 1.5
+  costMultiplier: 1.4
   baseValue: 0
   valuePerLevel: 1

@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Storm Duration
   description: 
-  upgradeType: 6
+  upgradeType: 8
   maxLevel: 5
-  baseCost: 35
-  costMultiplier: 1.7
+  isInfinite: 0
+  baseCost: 20
+  costMultiplier: 1.4
   baseValue: 0
-  valuePerLevel: 5
+  valuePerLevel: 2

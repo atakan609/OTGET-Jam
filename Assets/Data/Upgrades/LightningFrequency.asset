@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Lightning Frequency
   description: 
-  upgradeType: 9
-  maxLevel: 5
-  baseCost: 30
-  costMultiplier: 1.6
+  upgradeType: 11
+  maxLevel: 6
+  isInfinite: 0
+  baseCost: 18
+  costMultiplier: 1.5
   baseValue: 0
-  valuePerLevel: 3
+  valuePerLevel: 0.8

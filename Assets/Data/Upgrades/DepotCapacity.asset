@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Depot Capacity
   description: 
-  upgradeType: 12
-  maxLevel: 6
-  baseCost: 40
-  costMultiplier: 1.8
+  upgradeType: 15
+  maxLevel: 8
+  isInfinite: 0
+  baseCost: 20
+  costMultiplier: 1.5
   baseValue: 0
-  valuePerLevel: 50
+  valuePerLevel: 25

@@ -10,12 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0030f6b536a051347823aa927b9ba3d7, type: 3}
-  m_Name: DropValue
+  m_Name: GeneratorCondenser
   m_EditorClassIdentifier: 
-  upgradeData: {fileID: 11400000, guid: 5ab7e680960d1984588423f840ec07df, type: 2}
+  upgradeData: {fileID: 11400000, guid: 06c4bd77cad03bd4dbd2985bf4ed1a93, type: 2}
   children:
-  - {fileID: 11400000, guid: 32d2e4355014bef429f6c198b7c86822, type: 2}
-  - {fileID: 11400000, guid: 35dee5d180b03044c9adedceea9f7175, type: 2}
-  - {fileID: 11400000, guid: 0dacc830bbbbbe6468e4f5091b05f0b6, type: 2}
-  - {fileID: 11400000, guid: ba196babee949db419893f0ba65e509a, type: 2}
+  - {fileID: 11400000, guid: 94b8f5c556252824785897b86988b7b1, type: 2}
   icon: {fileID: -6359276090418552137, guid: 1ecbf9f956d60514baa3d44a5a917dd7, type: 3}

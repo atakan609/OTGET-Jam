@@ -54,6 +54,9 @@ namespace UI
         {
             if (_nodeData == null || _nodeData.upgradeData == null || UpgradeManager.Instance == null) return;
 
+            // UpgradeManager'a bu veriyi kaydet (eğer Inspector'dan eklenmemişse bile sistem tanısın)
+            UpgradeManager.Instance.RegisterUpgradeData(_nodeData.upgradeData);
+
             UpgradeType type = _nodeData.upgradeData.upgradeType;
             int currentLevel = UpgradeManager.Instance.GetLevel(type);
             int maxLevel = _nodeData.upgradeData.maxLevel;
@@ -61,8 +64,9 @@ namespace UI
             // Eğer root node ise (parent null) daima kilidi açıktır
             // Değilse, parent en az 1 kere satın alınmışsa kilidi açılır
             bool isUnlocked = _parentNodeData == null || UpgradeManager.Instance.GetLevel(_parentNodeData.upgradeData.upgradeType) > 0;
+            bool isInfinite = _nodeData.upgradeData.isInfinite;
 
-            if (currentLevel >= maxLevel)
+            if (!isInfinite && currentLevel >= maxLevel)
             {
                 _currentState = NodeState.Maxed;
             }
@@ -97,7 +101,14 @@ namespace UI
 
             if (levelText != null)
             {
-                levelText.text = $"{currentLevel}/{maxLevel}";
+                if (_nodeData != null && _nodeData.upgradeData.isInfinite)
+                {
+                    levelText.text = currentLevel > 0 ? $"Lv{currentLevel}" : "Lv0";
+                }
+                else
+                {
+                    levelText.text = $"{currentLevel}/{maxLevel}";
+                }
             }
 
             if (costText != null)
@@ -109,7 +120,7 @@ namespace UI
                 else
                 {
                     int cost = UpgradeManager.Instance.GetNextCost(_nodeData.upgradeData.upgradeType);
-                    costText.text = cost.ToString();
+                    costText.text = cost.ToString() + " mL";
                 }
             }
 

@@ -150,17 +150,21 @@ namespace UI
         }
 
         // Ağaçtaki tüm Ebeveyn-Çocuk ilişkilerini listeleyen yardımcı fonksiyon
-        private static void BuildEdges(UpgradeNodeDataSO node, float baseRadius, float radiusStep, int depth, List<(UpgradeNodeDataSO parent, UpgradeNodeDataSO child, float maxDist)> edges)
+        private static void BuildEdges(UpgradeNodeDataSO node, float baseRadius, float radiusStep, int depth, List<(UpgradeNodeDataSO parent, UpgradeNodeDataSO child, float maxDist)> edges, HashSet<UpgradeNodeDataSO> visited = null)
         {
-            if (node == null || node.children == null) return;
+            if (node == null || node.children == null || depth > 100) return;
             
+            if (visited == null) visited = new HashSet<UpgradeNodeDataSO>();
+            if (visited.Contains(node)) return;
+            visited.Add(node);
+
             float maxDist = depth == 1 ? baseRadius : radiusStep;
             foreach (var child in node.children)
             {
                 if (child != null)
                 {
                     edges.Add((node, child, maxDist));
-                    BuildEdges(child, baseRadius, radiusStep, depth + 1, edges);
+                    BuildEdges(child, baseRadius, radiusStep, depth + 1, edges, visited);
                 }
             }
         }
@@ -175,13 +179,14 @@ namespace UI
             Dictionary<UpgradeNodeDataSO, Vector2> positions,
             System.Random prng)
         {
-            if (rawChildren == null) return;
+            if (rawChildren == null || depth > 100) return;
 
-            // Null olan elemanları ayıkla
+            // Null olan elemanları ve ZATEN hesaplanmış olanları ayıkla (Cycle detection)
             var childrenList = new List<UpgradeNodeDataSO>();
             foreach (var child in rawChildren)
             {
-                if (child != null) childrenList.Add(child);
+                if (child != null && !positions.ContainsKey(child)) 
+                    childrenList.Add(child);
             }
 
             UpgradeNodeDataSO[] children = childrenList.ToArray();
@@ -224,8 +229,6 @@ namespace UI
 
             for (int i = 0; i < count; i++)
             {
-                if (children[i] == null) continue;
-
                 float currentAngle = startAngle + (i * angleStep);
                 
                 if (actualCoverage >= 360f) 

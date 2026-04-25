@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0030f6b536a051347823aa927b9ba3d7, type: 3}
   m_Name: PassiveIncome
   m_EditorClassIdentifier: 
-  upgradeData: {fileID: 11400000, guid: e84d67f5fe101e248b2f3b0f87b53339, type: 2}
+  upgradeData: {fileID: 11400000, guid: 226c5f80af4362c449507e8789352cb4, type: 2}
   children:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 304070465078e1f49932189857d0abc7, type: 2}
+  - {fileID: 11400000, guid: 816fc2be59fb4cf438f8b1f4132231f6, type: 2}
   icon: {fileID: -6359276090418552137, guid: 1ecbf9f956d60514baa3d44a5a917dd7, type: 3}

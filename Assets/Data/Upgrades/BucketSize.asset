@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Bucket Size
   description: 
-  upgradeType: 7
-  maxLevel: 5
-  baseCost: 25
-  costMultiplier: 2
+  upgradeType: 9
+  maxLevel: 8
+  isInfinite: 0
+  baseCost: 5
+  costMultiplier: 1.3
   baseValue: 0
-  valuePerLevel: 15
+  valuePerLevel: 3

@@ -12,6 +12,8 @@ namespace Gameplay
 
         [Header("Leveling")]
         public int maxLevel = 5;
+        [Tooltip("True ise maxLevel kontrolü atlanır ve sonsuz kere satın alınabilir.")]
+        public bool isInfinite = false;
 
         [Header("Cost")]
         public int baseCost = 10;

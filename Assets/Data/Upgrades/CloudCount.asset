@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Cloud Count
   description: 
-  upgradeType: 3
+  upgradeType: 5
   maxLevel: 5
-  baseCost: 30
-  costMultiplier: 2
+  isInfinite: 0
+  baseCost: 20
+  costMultiplier: 1.6
   baseValue: 0
   valuePerLevel: 1

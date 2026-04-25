@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0030f6b536a051347823aa927b9ba3d7, type: 3}
+  m_Name: GeneratorWell
+  m_EditorClassIdentifier: 
+  upgradeData: {fileID: 11400000, guid: cdde086f1a0dc3146bb8dafe16abe255, type: 2}
+  children:
+  - {fileID: 11400000, guid: 9c69b591d2c6d7948acfa6ed512d3d8d, type: 2}
+  icon: {fileID: -6359276090418552137, guid: 1ecbf9f956d60514baa3d44a5a917dd7, type: 3}

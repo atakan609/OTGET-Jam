@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeData: {fileID: 11400000, guid: 7b41100fde8156c47a047e7ecbfd563c, type: 2}
   children:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 2aa7a712168e634428ef541e1e3c20d6, type: 2}
+  - {fileID: 11400000, guid: ba196babee949db419893f0ba65e509a, type: 2}
   icon: {fileID: -6359276090418552137, guid: 1ecbf9f956d60514baa3d44a5a917dd7, type: 3}

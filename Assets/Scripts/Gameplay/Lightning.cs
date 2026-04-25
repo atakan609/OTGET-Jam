@@ -25,6 +25,14 @@ namespace Gameplay
 
         private float _strikeX;
         private float _groundY;
+        private BoxCollider2D _strikeCollider;
+        private bool _isActive = false;
+
+        private void Awake()
+        {
+            _strikeCollider = GetComponent<BoxCollider2D>();
+            if (_strikeCollider != null) _strikeCollider.enabled = false;
+        }
 
         /// <summary>LightningManager tarafından çağrılır.</summary>
         public void Initialize(float strikeX, float cloudY, float groundY)
@@ -55,14 +63,40 @@ namespace Gameplay
             // 2. YILDIRIM FAZI
             if (warningObject != null) warningObject.SetActive(false);
             if (lightningBoltObject != null) lightningBoltObject.SetActive(true);
+            
+            if (_strikeCollider != null) _strikeCollider.enabled = true;
+            _isActive = true;
 
             // 3. HASAR KONTROLÜ
             CheckPlayerHit();
 
             yield return new WaitForSeconds(flashDuration);
 
+            if (_strikeCollider != null) _strikeCollider.enabled = false;
+            _isActive = false;
+
             // 4. YOK OLMA
             Destroy(gameObject);
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (!_isActive) return;
+            if (other.CompareTag("Player"))
+            {
+                var bucket = other.GetComponentInChildren<BucketController>();
+                if (bucket == null) bucket = other.GetComponent<BucketController>();
+
+                if (bucket != null)
+                {
+                    float dur = LightningManager.Instance != null 
+                        ? LightningManager.Instance.GetMagnetDuration() : 3f;
+                    float rng = LightningManager.Instance != null 
+                        ? LightningManager.Instance.GetMagnetRange() : 4f;
+                    
+                    bucket.ActivateMagnet(dur, rng);
+                }
+            }
         }
 
         private void CheckPlayerHit()

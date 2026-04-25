@@ -80,6 +80,9 @@ namespace Gameplay
             }
         }
 
+        [SerializeField] private float baseMinDrop = 0.5f;
+        [SerializeField] private float baseMaxDrop = 1.5f;
+
         private void SpawnRaindrop()
         {
             Vector3 spawnPos = dropSpawnPoint != null ? dropSpawnPoint.position : transform.position;
@@ -93,12 +96,22 @@ namespace Gameplay
             bool spawnGolden = goldenRaindropPrefab != null && Random.value < goldenChance;
             GameObject drop = Instantiate(spawnGolden ? goldenRaindropPrefab : raindropPrefab, spawnPos, Quaternion.identity);
 
-            // DropValue upgrade'ini uygula
+            // Boyut ve Çarpan hesaplama
             var raindrop = drop.GetComponent<Raindrop>();
-            if (raindrop != null && UpgradeManager.Instance != null)
+            if (raindrop != null)
             {
-                float bonus = UpgradeManager.Instance.GetCurrentValue(UpgradeType.DropValue);
-                raindrop.dropValue = raindrop.dropValue + bonus;
+                float minSize = baseMinDrop;
+                float maxSize = baseMaxDrop;
+                float multiplier = 1f;
+
+                if (UpgradeManager.Instance != null)
+                {
+                    minSize += UpgradeManager.Instance.GetCurrentValue(UpgradeType.MinDropSize);
+                    maxSize += UpgradeManager.Instance.GetCurrentValue(UpgradeType.MaxDropSize);
+                    multiplier += UpgradeManager.Instance.GetCurrentValue(UpgradeType.DropMultiplier);
+                }
+
+                raindrop.dropValue = Random.Range(minSize, maxSize) * multiplier;
             }
         }
 

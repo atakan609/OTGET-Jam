@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60f71501d03c91c41968ec1a2cb2a0e0, type: 3}
   m_Name: PassiveIncome
   m_EditorClassIdentifier: 
-  upgradeName: Passive Income
+  upgradeName: Storm Frequency
   description: 
-  upgradeType: 22
-  maxLevel: 10
-  baseCost: 80
-  costMultiplier: 2
+  upgradeType: 25
+  maxLevel: 6
+  isInfinite: 0
+  baseCost: 15
+  costMultiplier: 1.5
   baseValue: 0
-  valuePerLevel: 0.1
+  valuePerLevel: 1

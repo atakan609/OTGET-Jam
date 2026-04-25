@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Raining Cloud Chance
   description: 
-  upgradeType: 2
-  maxLevel: 6
-  baseCost: 20
+  upgradeType: 4
+  maxLevel: 5
+  isInfinite: 0
+  baseCost: 25
   costMultiplier: 1.5
   baseValue: 0
-  valuePerLevel: 0.05
+  valuePerLevel: 0.08
