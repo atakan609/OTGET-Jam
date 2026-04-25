@@ -233,6 +233,10 @@ GameObject:
   - component: {fileID: 71417369}
   - component: {fileID: 71417368}
   - component: {fileID: 71417367}
+  - component: {fileID: 71417372}
+  - component: {fileID: 71417373}
+  - component: {fileID: 71417374}
+  - component: {fileID: 71417375}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -252,7 +256,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bce38f5a4a85e714b9cae6f45a1eb0f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseMoveSpeed: 8
+  baseMoveSpeed: 6
   Bucket: {fileID: 37985320}
 --- !u!61 &71417368
 BoxCollider2D:
@@ -288,17 +292,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.08736354, y: 0.0059478283}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
+    oldSize: {x: 2.35, y: 7.82}
+    newSize: {x: 2.35, y: 7.82}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.601832, y: 7.8455777}
   m_EdgeRadius: 0
 --- !u!50 &71417369
 Rigidbody2D:
@@ -371,12 +375,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: 4368219378160320114, guid: 11e913c3c33e2b94e92294b53cc618db, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2.35, y: 7.82}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -391,13 +395,74 @@ Transform:
   m_GameObject: {fileID: 71417366}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.33655143, y: 0.46471083, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.09, y: -3.58, z: 0}
+  m_LocalScale: {x: 0.2728992, y: 0.2728992, z: 0.2728992}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 37985322}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &71417372
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71417366}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ee9ad989f522b8e45a4fdbad5f00032c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &71417373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71417366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02ac31d94ffffee4ea0ca7e8ff775427, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
+--- !u!114 &71417374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71417366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02ac31d94ffffee4ea0ca7e8ff775427, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
+--- !u!114 &71417375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71417366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02ac31d94ffffee4ea0ca7e8ff775427, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
 --- !u!1 &201979086
 GameObject:
   m_ObjectHideFlags: 0
@@ -1018,12 +1083,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43ba86e4b7f76814884d8f4c8467c74e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightningPrefab: {fileID: 6418275241192143432, guid: 5464a7060a0b19041a2a857423013791, type: 3}
+  lightningPrefab: {fileID: 8310487734429727030, guid: 6597f4456ff9de64583a8191be87b359, type: 3}
   baseMinInterval: 0.1
   baseMaxInterval: 0.2
   spawnMinX: -10
   spawnMaxX: 10
-  spawnY: 0
+  spawnY: -4
   baseMagnetDuration: 3
   baseMagnetRange: 4
 --- !u!1 &1026994043

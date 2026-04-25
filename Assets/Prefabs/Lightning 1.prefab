@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &506502848235216146
+--- !u!1 &3011511174119037227
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,37 +8,37 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8767137061056094776}
-  - component: {fileID: 5908617195569649448}
+  - component: {fileID: 6253792922405325168}
+  - component: {fileID: 1667286783638672112}
   m_Layer: 0
-  m_Name: Cloud2_sp
+  m_Name: Lightning_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8767137061056094776
+--- !u!4 &6253792922405325168
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 506502848235216146}
+  m_GameObject: {fileID: 3011511174119037227}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.0020944288, w: 0.99999785}
-  m_LocalPosition: {x: 0.29440022, y: 0.89547807, z: 0.058680955}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.9146622, y: 0.7024422, z: 0.9146622}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7942011044909374322}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -0.24}
---- !u!212 &5908617195569649448
+  m_Father: {fileID: 330298734675735014}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1667286783638672112
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 506502848235216146}
+  m_GameObject: {fileID: 3011511174119037227}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -76,18 +76,18 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 5593258439479220149, guid: 96aa9afdbe742fa43ae5802c2013ceb4, type: 3}
+  m_Sprite: {fileID: -3844808008048746940, guid: 25b0b134ae66b83448ab50c57a6793b6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 16.962221, y: 6.49}
+  m_Size: {x: 0.23, y: 0.37}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!1 &8187854501218126416
+--- !u!1 &8310487734429727030
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -95,56 +95,44 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7942011044909374322}
-  - component: {fileID: -1703471094161084875}
+  - component: {fileID: 330298734675735014}
+  - component: {fileID: 3125206760182697897}
   m_Layer: 0
-  m_Name: Cloud2
-  m_TagString: Cloud
+  m_Name: Lightning 1
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7942011044909374322
+--- !u!4 &330298734675735014
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8187854501218126416}
+  m_GameObject: {fileID: 8310487734429727030}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.29440022, y: -0.89547807, z: -0.058680955}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.0028242357, y: -1.3269085, z: -0.016485807}
+  m_LocalScale: {x: 1, y: 1.628, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8767137061056094776}
+  - {fileID: 6253792922405325168}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-1703471094161084875
+--- !u!114 &3125206760182697897
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8187854501218126416}
+  m_GameObject: {fileID: 8310487734429727030}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e600b20cf4b22c4fb629efa6722458c, type: 3}
+  m_Script: {fileID: 11500000, guid: 24d4871a473ad494e995ffb6da37af92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isRaining: 0
-  raindropPrefab: {fileID: 2040964717480185849, guid: 35324902b6271714face44dae2dd96d2, type: 3}
-  goldenRaindropPrefab: {fileID: 2040964717480185849, guid: a893a5f317b68324c819dae34c16d0a3, type: 3}
-  minDropInterval: 0.5
-  maxDropInterval: 2
-  dropSpawnPoint: {fileID: 7942011044909374322}
-  spawnRangeX: 1.5
-  baseSpeedMultiplier: 1
-  windChangeSpeed: 0.1
-  minWindSpeed: 0.5
-  maxWindSpeed: 2.5
-  moveDirection: 1
-  bobAmplitude: 0.3
-  bobFrequency: 0.5
-  screenLeftX: -20
-  screenRightX: 20
+  fallSpeed: 15
+  warningDuration: 0.8
+  warningSprite: {fileID: 0}
+  destroyY: -12
