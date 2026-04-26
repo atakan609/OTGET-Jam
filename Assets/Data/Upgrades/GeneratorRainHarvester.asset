@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Generator Rain Harvester
   description: 
-  upgradeType: 28
+  upgradeType: 26
   maxLevel: 5
   isInfinite: 1
   baseCost: 100

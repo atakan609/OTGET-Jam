@@ -12,8 +12,8 @@ namespace UI
 
         [Header("Data")]
         [SerializeField]
-        private UpgradeTreeDataSO treeData;
-        public UpgradeTreeDataSO TreeData => treeData;
+        private List<UpgradeTreeDataSO> treeDatas = new List<UpgradeTreeDataSO>();
+        public List<UpgradeTreeDataSO> TreeDatas => treeDatas;
 
         [Header("References")]
         [SerializeField]
@@ -193,9 +193,9 @@ namespace UI
                         Vector2 push = (dir / dist) * (overlap * 5f * Time.deltaTime);
 
                         // Root sabit kalsın
-                        if (n1 == treeData.rootNode)
+                        if (IsRootNode(n1))
                             _nodeRects[n2].anchoredPosition -= push * 2f;
-                        else if (n2 == treeData.rootNode)
+                        else if (IsRootNode(n2))
                             _nodeRects[n1].anchoredPosition += push * 2f;
                         else
                         {
@@ -224,7 +224,7 @@ namespace UI
                     float excess = dist - conn.maxDist;
                     Vector2 pull = (dir / dist) * (excess * 10f * Time.deltaTime);
 
-                    if (conn.parent == treeData.rootNode)
+                    if (IsRootNode(conn.parent))
                         _nodeRects[conn.child].anchoredPosition -= pull * 2f;
                     else
                     {
@@ -314,9 +314,19 @@ namespace UI
             }
         }
 
+        private bool IsRootNode(UpgradeNodeDataSO node)
+        {
+            if (treeDatas == null) return false;
+            foreach (var t in treeDatas)
+            {
+                if (t != null && t.rootNode == node) return true;
+            }
+            return false;
+        }
+
         private void BuildTree()
         {
-            if (treeData == null || treeData.rootNode == null)
+            if (treeDatas == null || treeDatas.Count == 0)
                 return;
             if (contentTree == null || nodePrefab == null)
                 return;
@@ -330,41 +340,43 @@ namespace UI
             _nodeRects.Clear();
             _connections.Clear();
 
-            // 1. Başlangıç Pozisyonlarını hesapla (Engine içindeki statik hesaplama iterasyonlarını 0 varsayıyoruz)
-            var positions = UpgradeTreeLayoutEngine.CalculatePositions(
-                treeData.rootNode,
-                layoutParameters
-            );
+            // 1. Tüm ağaçlar için master pozisyonları hesapla
+            var positions = CalculateMasterPositions();
 
-            // 2. Başlangıç bağlantıları artık CreateNodeUI içinde veya dinamik spawn sırasında çizilecek
-            // DrawConnections(treeData.rootNode, positions, 1);
-
-            // 3. Node'ları oluştur (Sadece alınanlar ve onların bir alt kademesi oluşturulacak)
-            CreateNodeUI(treeData.rootNode, null, positions);
-
-            // 4. Content boyutunu sınırla (ScrollView'in dışarı taşmaması için)
-            float maxExtentsX = 0f;
-            float maxExtentsY = 0f;
-            foreach (var pos in positions.Values)
+            // 2. Head/Root node'ları oluştur
+            foreach (var tree in treeDatas)
             {
-                if (Mathf.Abs(pos.x) > maxExtentsX)
-                    maxExtentsX = Mathf.Abs(pos.x);
-                if (Mathf.Abs(pos.y) > maxExtentsY)
-                    maxExtentsY = Mathf.Abs(pos.y);
+                if (tree != null && tree.rootNode != null)
+                {
+                    CreateNodeUI(tree.rootNode, null, positions);
+                }
             }
 
-            // Düğümlerin kendi kapladığı alanı (padding) da hesaba katalım
-            float paddingX = 400f;
-            float paddingY = 800f; // Y sınırlarını özellikle daha fazla artırdık
-            
-            float totalSizeX = (maxExtentsX * 2f) + paddingX;
-            float totalSizeY = (maxExtentsY * 2f) + paddingY;
+            // 3. Boyut sınırlarını ayarla
+            RecalculateContentSize(positions);
+        }
 
-            // Merkezin (0,0) içerik alanının tam ortası olması için pivot'u ayarla
-            contentTree.pivot = new Vector2(0.5f, 0.5f);
-
-            // Yeni sınırları uygula
-            contentTree.sizeDelta = new Vector2(totalSizeX, totalSizeY);
+        private Dictionary<UpgradeNodeDataSO, Vector2> CalculateMasterPositions()
+        {
+            var masterPositions = new Dictionary<UpgradeNodeDataSO, Vector2>();
+            float currentOffsetX = 0f;
+            foreach (var tree in treeDatas)
+            {
+                if (tree == null || tree.rootNode == null) continue;
+                var subPos = UpgradeTreeLayoutEngine.CalculatePositions(tree.rootNode, layoutParameters);
+                
+                float minX = 0, maxX = 0;
+                foreach(var kvp in subPos) {
+                    float shiftedX = kvp.Value.x + currentOffsetX;
+                    masterPositions[kvp.Key] = new Vector2(shiftedX, kvp.Value.y);
+                    if (shiftedX < minX) minX = shiftedX;
+                    if (shiftedX > maxX) maxX = shiftedX;
+                }
+                
+                // Sonraki ağaç, bu ağacın sağ bitiş noktasından bir boşluk bırakılarak devam eder
+                currentOffsetX = maxX + 1000f + layoutParameters.baseRadius; 
+            }
+            return masterPositions;
         }
 
         private void CreateNodeUI(
@@ -397,7 +409,7 @@ namespace UI
             if (node.children != null)
             {
                 bool purchased = UpgradeManager.Instance.GetLevel(node.upgradeData.upgradeType) > 0;
-                bool isRoot = (node == treeData.rootNode);
+                bool isRoot = IsRootNode(node);
 
                 if (purchased || isRoot)
                 {
@@ -467,7 +479,7 @@ namespace UI
             UpgradeNodeDataSO purchasedNode = FindNodeByType(purchasedType);
             if (purchasedNode == null || purchasedNode.children == null) return;
 
-            var positions = UpgradeTreeLayoutEngine.CalculatePositions(treeData.rootNode, layoutParameters);
+            var positions = CalculateMasterPositions();
 
             foreach (var child in purchasedNode.children)
             {
@@ -539,13 +551,15 @@ namespace UI
 
         private int GetDepth(UpgradeNodeDataSO node)
         {
-            if (node == treeData.rootNode) return 1;
+            if (IsRootNode(node)) return 1;
             // Kaba bir tahmin:
             return 2;
         }
 
         private void RecalculateContentSize(Dictionary<UpgradeNodeDataSO, Vector2> positions)
         {
+            if (positions.Count == 0) return;
+            
             float maxExtentsX = 0f;
             float maxExtentsY = 0f;
             foreach (var pos in positions.Values)
@@ -559,8 +573,14 @@ namespace UI
             float totalSizeX = (maxExtentsX * 2f) + paddingX;
             float totalSizeY = (maxExtentsY * 2f) + paddingY;
 
-            contentTree.sizeDelta = new Vector2(totalSizeX, totalSizeY);
+            if (contentTree != null)
+            {
+                contentTree.pivot = new Vector2(0.5f, 0.5f);
+                contentTree.sizeDelta = new Vector2(totalSizeX, totalSizeY);
+            }
         }
+
+
 
         // Ağacı baştan kurdurma
         public void Rebuild()
@@ -575,30 +595,45 @@ namespace UI
 
             tooltipPanel.SetActive(true);
 
+            string lockedMsg = UpgradeManager.Instance != null 
+                ? UpgradeManager.Instance.GetLockedPrerequisiteMessage(data.upgradeType)
+                : null;
+
             // 1. Yazıları hazırla
             if (tooltipTitleText != null) 
                 tooltipTitleText.text = $"<b>{data.upgradeName}</b>";
 
-            if (tooltipDescText != null)
+            if (lockedMsg != null)
             {
-                float curVal = data.GetValue(currentLevel);
-                float nextVal = data.GetValue(currentLevel + 1);
-                string unit = "mL";
-
-                string desc = data.description + "\n";
-                desc += $"<color=#A0A0A0>Current:</color> <color=#FFFFFF>{curVal}{unit}</color>\n";
-                if (!isMax) desc += $"<color=#A0A0A0>Next:</color> <color=#00FF00>+{nextVal - curVal}{unit} ({nextVal}{unit})</color>\n";
+                if (tooltipDescText != null)
+                    tooltipDescText.text = $"<color=#FF4444>[LOCKED]</color>\n{lockedMsg}";
                 
-                string lvlTag = data.isInfinite ? $"Lv{currentLevel}" : $"Lv{currentLevel}/{data.maxLevel}";
-                desc += $"<size=80%><color=#FFD700>{lvlTag}</color></size>";
-
-                tooltipDescText.text = desc;
+                if (tooltipCostText != null)
+                    tooltipCostText.text = "";
             }
-
-            if (tooltipCostText != null)
+            else
             {
-                if (isMax) tooltipCostText.text = "<color=#FF4444>MAXED OUT</color>";
-                else tooltipCostText.text = $"Cost: <color=#00CCFF>{nextCost} mL</color>";
+                if (tooltipDescText != null)
+                {
+                    float curVal = data.GetValue(currentLevel);
+                    float nextVal = data.GetValue(currentLevel + 1);
+                    string unit = "mL"; // Daha spesifik yapmak gerekebilir ileride
+
+                    string desc = data.description + "\n";
+                    desc += $"<color=#A0A0A0>Current:</color> <color=#FFFFFF>{curVal}{unit}</color>\n";
+                    if (!isMax) desc += $"<color=#A0A0A0>Next:</color> <color=#00FF00>+{nextVal - curVal}{unit} ({nextVal}{unit})</color>\n";
+                    
+                    string lvlTag = data.isInfinite ? $"Lv{currentLevel}" : $"Lv{currentLevel}/{data.maxLevel}";
+                    desc += $"<size=80%><color=#FFD700>{lvlTag}</color></size>";
+
+                    tooltipDescText.text = desc;
+                }
+
+                if (tooltipCostText != null)
+                {
+                    if (isMax) tooltipCostText.text = "<color=#FF4444>MAXED OUT</color>";
+                    else tooltipCostText.text = $"Cost: <color=#00CCFF>{nextCost} mL</color>";
+                }
             }
 
             // 2. KRİTİK: En uzun olanın genişliğini bul ve hepsini ona eşitle

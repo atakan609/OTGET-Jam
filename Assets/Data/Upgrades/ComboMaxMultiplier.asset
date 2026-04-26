@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Combo Max Multiplier
   description: 
-  upgradeType: 22
+  upgradeType: 20
   maxLevel: 5
   isInfinite: 0
   baseCost: 25

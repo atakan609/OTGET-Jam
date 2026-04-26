@@ -19,9 +19,7 @@ namespace Managers
         [SerializeField] private float raycastMaxDistance = 40f;
         [SerializeField] private float fallbackGroundY = -5f; // Zemin bulunamazsa varsayılan
 
-        [Header("Magnet Values (Base) – İleride kaldırılacak")]
-        [SerializeField] private float baseMagnetDuration = 3f;
-        [SerializeField] private float baseMagnetRange = 4f;
+
 
         private float _nextSpawnTime;
 
@@ -100,17 +98,9 @@ namespace Managers
 
         private void ScheduleNext()
         {
-            float freqBonus = UpgradeManager.Instance != null
-                ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.LightningFrequency)
-                : 0f;
-
-            float min = Mathf.Max(2f, baseMinInterval - freqBonus);
-            float max = Mathf.Max(min + 1f, baseMaxInterval - freqBonus);
+            float min = Mathf.Max(2f, baseMinInterval);
+            float max = Mathf.Max(min + 1f, baseMaxInterval);
             _nextSpawnTime = Time.time + Random.Range(min, max);
         }
-
-        // ── Legacy API (BucketController hâlâ bunları okuyabilir) ─────────────
-        public float GetMagnetDuration() => baseMagnetDuration;
-        public float GetMagnetRange()    => baseMagnetRange;
     }
 }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Auto Collector Capacity
   description: 
-  upgradeType: 18
+  upgradeType: 16
   maxLevel: 6
   isInfinite: 0
   baseCost: 20

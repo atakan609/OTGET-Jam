@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Generator Cloud Seeder
   description: 
-  upgradeType: 30
+  upgradeType: 28
   maxLevel: 2
   isInfinite: 1
   baseCost: 500

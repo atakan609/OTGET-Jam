@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Game Win
   description: 
-  upgradeType: 31
+  upgradeType: 29
   maxLevel: 1
   isInfinite: 0
-  baseCost: 200
+  baseCost: 180
   costMultiplier: 1.5
   baseValue: 0
   valuePerLevel: 1

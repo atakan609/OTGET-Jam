@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Critical Chance
   description: 
-  upgradeType: 23
+  upgradeType: 21
   maxLevel: 5
   isInfinite: 0
   baseCost: 20

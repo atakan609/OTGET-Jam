@@ -374,7 +374,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseCapacity: 10
-  magnetAttractionSpeed: 8
   bucketPrefabs:
   - {fileID: 7211266336992882647, guid: d02e479aba854e3478f80e01e50337fd, type: 3}
   - {fileID: 562750406990428620, guid: 7eee515b7c6caeb4d94858bc75f20a20, type: 3}
@@ -1135,7 +1134,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00029284437}
+  m_AnchoredPosition: {x: 0, y: 0.0001144558}
   m_SizeDelta: {x: 0, y: 595}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &130194813
@@ -1150,17 +1149,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c69f61d3d7ce944bbb20a545a3eeed2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  treeData: {fileID: 11400000, guid: edd70bbba42e06b40b9a409e6eb4b08e, type: 2}
+  treeDatas:
+  - {fileID: 11400000, guid: edd70bbba42e06b40b9a409e6eb4b08e, type: 2}
+  - {fileID: 11400000, guid: 1cf94338a56ee7b44af747a6eeda6342, type: 2}
   contentTree: {fileID: 130194812}
   nodePrefab: {fileID: 5649858345840330476, guid: f988424461a11a247b2d200cd3966fe2, type: 3}
   linePrefab: {fileID: 2372212867500156706, guid: 534746a0e7d36dd49a0e550c061b3750, type: 3}
   layoutParameters:
-    baseRadius: 300
-    radiusStep: 200
+    baseRadius: 500
+    radiusStep: 500
     minAngleSpacing: 30
-    angleRandomness: 40
-    nodeAvoidanceRadius: 150
-    relaxationIterations: 0
+    angleRandomness: 30
+    nodeAvoidanceRadius: 400
+    relaxationIterations: 50
   toggleKey: 117
   mainPanel: {fileID: 1304458923}
   zoomSpeed: 0.1
@@ -1519,7 +1520,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 294618758}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.9999999
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2223,11 +2224,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 763005705}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 203}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -142}
   m_SizeDelta: {x: 200, y: 50}
-  m_Pivot: {x: 0.5, y: 0}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &345366876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2659,7 +2660,7 @@ MonoBehaviour:
     bosalacak.\n\nBiriktirdigin su para kazanmanda kullan\u0131lacak.\n\n\u0130yi
     \u015Fanslar!"
   waterCollectTarget: 10
-  forceShowTutorial: 0
+  forceShowTutorial: 1
   stepDelay: 0.5
   fadeOutDuration: 1
 --- !u!1 &518257664
@@ -3369,7 +3370,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 763005704}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -3897,8 +3898,6 @@ MonoBehaviour:
     m_Bits: 64
   raycastMaxDistance: 40
   fallbackGroundY: -5
-  baseMagnetDuration: 3
-  baseMagnetRange: 4
 --- !u!1 &1023497333
 GameObject:
   m_ObjectHideFlags: 0
@@ -4104,7 +4103,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e83011c4e25c62c4eb2de664a3f865a8, type: 2}
   - {fileID: 11400000, guid: 1192b0d02b8a3e0409bf16a1e9a1fa40, type: 2}
   - {fileID: 11400000, guid: e5af03cd0a28fc94bbbe9c60b19bd247, type: 2}
-  treeData: {fileID: 0}
+  treeDatas:
+  - {fileID: 11400000, guid: edd70bbba42e06b40b9a409e6eb4b08e, type: 2}
+  - {fileID: 11400000, guid: 1cf94338a56ee7b44af747a6eeda6342, type: 2}
 --- !u!1 &1045465267
 GameObject:
   m_ObjectHideFlags: 0
@@ -5655,8 +5656,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 926282758}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.9999541
-  m_Size: 0.9999835
+  m_Size: 0.9994217
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

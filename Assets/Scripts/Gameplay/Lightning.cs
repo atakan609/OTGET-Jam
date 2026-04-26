@@ -107,10 +107,19 @@ namespace Gameplay
             {
                 if (!col.CompareTag("Player")) continue;
 
+                // Mümkün olan ceza düşürme oranını çek (örn: 0.2f gelirse cezalar %20 azalır, 0.5f gelirse %50)
+                float reductionPerc = Managers.UpgradeManager.Instance != null 
+                    ? Managers.UpgradeManager.Instance.GetCurrentValue(UpgradeType.ReduceLightningPenalty) 
+                    : 0f;
+                reductionPerc = Mathf.Clamp01(reductionPerc); // 0 ile 1 arasına sınırla (en fazla %100 azaltma)
+
+                float actualStun = stunDuration * (1f - reductionPerc);
+                float actualWaterSpill = waterSpillAmount * (1f - reductionPerc);
+
                 // Stun
                 var player = col.GetComponent<PlayerController>();
-                if (player != null)
-                    player.ApplyLightningStun(stunDuration);
+                if (player != null && actualStun > 0f)
+                    player.ApplyLightningStun(actualStun);
 
                 // Su azalt
                 var bucket = col.GetComponentInChildren<BucketController>()
@@ -118,7 +127,7 @@ namespace Gameplay
                 if (bucket != null)
                 {
                     float before = bucket.CurrentWater;
-                    bucket.SpillWater(waterSpillAmount);
+                    bucket.SpillWater(actualWaterSpill);
                     float lost = before - bucket.CurrentWater;
 
                     // Kaybedilen suyu kovanın üstünde –X ml olarak göster (kırmızı)

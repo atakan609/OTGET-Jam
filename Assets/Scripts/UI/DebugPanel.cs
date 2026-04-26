@@ -115,8 +115,20 @@ public class DebugPanel : MonoBehaviour
 
         // ─── UPGRADE ───────────────────────────────────────────
         GUILayout.Label("── UPGRADE ──", sectionStyle);
-        if (GUILayout.Button("⬆️ Tüm Upgradeleri Al (MAX)"))
-            Debug_MaxAllUpgrades();
+        if (Managers.UpgradeManager.Instance != null && Managers.UpgradeManager.Instance.TreeDatas != null)
+        {
+            for (int i = 0; i < Managers.UpgradeManager.Instance.TreeDatas.Count; i++)
+            {
+                var tree = Managers.UpgradeManager.Instance.TreeDatas[i];
+                string treeName = (tree != null && tree.rootNode != null) ? tree.rootNode.upgradeData.upgradeName : $"Tree {i}";
+                if (GUILayout.Button($"⬆️ {treeName} Ağacını Ful (MAX)"))
+                    Debug_MaxTreeUpgrades(i);
+            }
+        }
+        else
+        {
+            GUILayout.Label("UpgradeManager bekleniyor...", sectionStyle);
+        }
     }
 
     private void DrawSeparator()
@@ -243,12 +255,12 @@ public class DebugPanel : MonoBehaviour
         else Log("BucketController bulunamadı!");
     }
 
-    private void Debug_MaxAllUpgrades()
+    private void Debug_MaxTreeUpgrades(int index)
     {
-        if (UpgradeManager.Instance != null)
+        if (Managers.UpgradeManager.Instance != null)
         {
-            UpgradeManager.Instance.Debug_MaxAllUpgrades();
-            Log("⬆️ Tüm upgradelar max seviyeye çekildi.");
+            Managers.UpgradeManager.Instance.Debug_MaxTreeUpgrades(index);
+            Log($"⬆️ {index}. Ağaç max seviyeye çekildi.");
         }
         else Log("UpgradeManager bulunamadı!");
     }

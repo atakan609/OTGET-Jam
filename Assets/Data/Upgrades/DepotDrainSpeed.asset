@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Depot Drain Speed
   description: 
-  upgradeType: 16
+  upgradeType: 14
   maxLevel: 6
   isInfinite: 0
   baseCost: 15

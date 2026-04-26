@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Currency Multiplier
   description: 
-  upgradeType: 20
+  upgradeType: 18
   maxLevel: 10
   isInfinite: 0
   baseCost: 15

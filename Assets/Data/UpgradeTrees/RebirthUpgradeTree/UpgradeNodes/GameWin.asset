@@ -9,15 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60f71501d03c91c41968ec1a2cb2a0e0, type: 3}
-  m_Name: LightningFrequency
+  m_Script: {fileID: 11500000, guid: 0030f6b536a051347823aa927b9ba3d7, type: 3}
+  m_Name: GameWin
   m_EditorClassIdentifier: 
-  upgradeName: Lightning Frequency
-  description: 
-  upgradeType: 11
-  maxLevel: 6
-  isInfinite: 0
-  baseCost: 18
-  costMultiplier: 1.5
-  baseValue: 0
-  valuePerLevel: 0.8
+  upgradeData: {fileID: 11400000, guid: c78c51cacf92c7444b5964e2efa512a3, type: 2}
+  children: []
+  icon: {fileID: 0}

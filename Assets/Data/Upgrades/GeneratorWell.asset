@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Generator Well
   description: 
-  upgradeType: 26
+  upgradeType: 24
   maxLevel: 5
   isInfinite: 1
   baseCost: 25

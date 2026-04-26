@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Buy Water Depot
   description: 
-  upgradeType: 14
+  upgradeType: 12
   maxLevel: 1
   isInfinite: 0
   baseCost: 10

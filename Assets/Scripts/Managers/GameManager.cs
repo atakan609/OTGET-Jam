@@ -15,7 +15,7 @@ namespace Managers
     public class GameManager : Singleton<GameManager>
     {
         public GameState CurrentState { get; private set; }
-        public bool ShowDebugUI { get; private set; } = true; // Varsayılan olarak açık
+        public bool ShowDebugUI { get; private set; } = false; // Varsayılan olarak kapalı (F1 ile açılır)
         
         public static event Action<GameState> OnStateChanged;
 

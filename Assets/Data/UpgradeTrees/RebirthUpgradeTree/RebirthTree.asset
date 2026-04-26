@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48b33ba98a5becc40889e73b1d1cc8e7, type: 3}
+  m_Name: RebirthTree
+  m_EditorClassIdentifier: 
+  rootNode: {fileID: 11400000, guid: 69dd9705970b3b34cac5ee938aa1b595, type: 2}
+  prerequisiteTree: {fileID: 11400000, guid: edd70bbba42e06b40b9a409e6eb4b08e, type: 2}
+  lockedTooltipMessage: "Bu a\u011Fac\u0131 a\xE7mak i\xE7in \xF6nce \xF6nceki a\u011Fa\xE7taki
+    t\xFCm y\xFCkseltmeleri a\xE7mal\u0131s\u0131n!"

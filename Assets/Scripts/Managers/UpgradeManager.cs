@@ -10,14 +10,18 @@ namespace Managers
     {
         [Header("Upgrade Definitions")]
         [SerializeField] private UpgradeDataSO[] upgrades;
-        [Tooltip("Ağaç yapısını okuyarak kilit (parent) kontrolü yapmak için gereklidir.")]
-        [SerializeField] private UpgradeTreeDataSO treeData;
+        [Tooltip("Ağaç yapılarını okuyarak kilit (parent ve prerequisite) kontrolü yapmak için gereklidir.")]
+        [SerializeField] private List<UpgradeTreeDataSO> treeDatas = new List<UpgradeTreeDataSO>();
+        public List<UpgradeTreeDataSO> TreeDatas => treeDatas;
 
         // UpgradeType → mevcut seviye
         private Dictionary<UpgradeType, int> _levels = new Dictionary<UpgradeType, int>();
 
         // UpgradeType → ScriptableObject hızlı erişim için lookup
         private Dictionary<UpgradeType, UpgradeDataSO> _dataLookup = new Dictionary<UpgradeType, UpgradeDataSO>();
+
+        // UpgradeType → Hangi ağaca ait (Önkoşul kontrolü için)
+        private Dictionary<UpgradeType, UpgradeTreeDataSO> _nodeTreeLookup = new Dictionary<UpgradeType, UpgradeTreeDataSO>();
 
         // UpgradeType → Parent UpgradeType lookup (Kilit kontrolü için)
         private Dictionary<UpgradeType, UpgradeType> _parentLookup = new Dictionary<UpgradeType, UpgradeType>();
@@ -32,16 +36,26 @@ namespace Managers
 
         private void BuildTreeLookup()
         {
-            if (treeData == null || treeData.rootNode == null) return;
-            TraverseNode(treeData.rootNode);
+            if (treeDatas == null) return;
+            HashSet<UpgradeNodeDataSO> visitedNodes = new HashSet<UpgradeNodeDataSO>();
+            foreach (var tree in treeDatas)
+            {
+                if (tree == null || tree.rootNode == null) continue;
+                TraverseNode(tree.rootNode, tree, visitedNodes);
+            }
         }
 
-        private void TraverseNode(UpgradeNodeDataSO node)
+        private void TraverseNode(UpgradeNodeDataSO node, UpgradeTreeDataSO currentTree, HashSet<UpgradeNodeDataSO> visited)
         {
             if (node == null || node.upgradeData == null) return;
 
+            // Döngü (StackOverflow) koruması
+            if (visited.Contains(node)) return;
+            visited.Add(node);
+
             // Daima ağaçtaki veriyi baz alması için eziyoruz
             _dataLookup[node.upgradeData.upgradeType] = node.upgradeData;
+            _nodeTreeLookup[node.upgradeData.upgradeType] = currentTree;
 
             // _levels'ta yoksa 0 ile başlat (KeyNotFoundException önlemi)
             if (!_levels.ContainsKey(node.upgradeData.upgradeType))
@@ -54,7 +68,7 @@ namespace Managers
                 if (child != null && child.upgradeData != null)
                 {
                     _parentLookup[child.upgradeData.upgradeType] = node.upgradeData.upgradeType;
-                    TraverseNode(child);
+                    TraverseNode(child, currentTree, visited);
                 }
             }
         }
@@ -126,18 +140,94 @@ namespace Managers
             return _levels.TryGetValue(type, out int lvl) ? lvl : 0;
         }
 
+        /// <summary>Oyunu sıfırlamak için tüm upgradeleri ve level verilerini başa döndürür (0 seviyesi).</summary>
+        public void ResetAllUpgrades()
+        {
+            EnsureInitialized();
+            var keys = new List<UpgradeType>(_levels.Keys);
+            foreach (var key in keys)
+            {
+                _levels[key] = 0;
+                OnUpgradePurchased?.Invoke(key, 0); // Diğer sistemlerin (UI vs) 0'landığını anlaması için event fırlat
+            }
+            Debug.Log("🔄 Tüm upgradeler sıfırlandı.");
+        }
+
+        /// <summary>Bir ağacın içindeki "tüm sonsuz olmayan upgradelerden en az 1 tane alınmış mı" durumunu kontrol eder.</summary>
+        public bool IsTreeCompleted(UpgradeTreeDataSO tree)
+        {
+            if (tree == null || tree.rootNode == null) return true;
+
+            Queue<UpgradeNodeDataSO> queue = new Queue<UpgradeNodeDataSO>();
+            HashSet<UpgradeNodeDataSO> visited = new HashSet<UpgradeNodeDataSO>();
+
+            queue.Enqueue(tree.rootNode);
+            visited.Add(tree.rootNode);
+
+            while (queue.Count > 0)
+            {
+                var node = queue.Dequeue();
+                if (node != null && node.upgradeData != null)
+                {
+                    if (!node.upgradeData.isInfinite && node.upgradeData.upgradeType != UpgradeType.GameWin)
+                    {
+                        if (GetLevel(node.upgradeData.upgradeType) < 1)
+                            return false;
+                    }
+
+                    if (node.children != null)
+                    {
+                        foreach (var c in node.children)
+                        {
+                            if (c != null && !visited.Contains(c))
+                            {
+                                visited.Add(c);
+                                queue.Enqueue(c);
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
         /// <summary>Parent upgrade satın alınmış mı kontrol eder (kilidi açık mı?).</summary>
         public bool IsUnlocked(UpgradeType type)
         {
             EnsureInitialized();
-            // Eğer treeData hiç verilmemişse kilit sistemi devre dışı sayılır.
-            if (treeData == null || treeData.rootNode == null) return true;
+            
+            // 1. Ağaç kilitli mi kontrolü (Önkoşul Ağaç)
+            if (_nodeTreeLookup.TryGetValue(type, out var tree))
+            {
+                if (tree != null && tree.prerequisiteTree != null)
+                {
+                    if (!IsTreeCompleted(tree.prerequisiteTree))
+                        return false; 
+                }
+            }
 
-            // _parentLookup'ta bu type yoksa → ya root'tur, ya da ağaçta tanımsızdır. Her iki durumda da açık.
+            // 2. Parent kilidi kontrolü
+            if (treeDatas == null || treeDatas.Count == 0) return true;
+
+            // _parentLookup'ta bu type yoksa → ya root'tur, ya da ağaçta tanımsızdır.
             if (!_parentLookup.TryGetValue(type, out UpgradeType parentType)) return true;
 
             // Parent'ı varsa → parent en az 1 kere satın alınmış olmalı.
             return GetLevel(parentType) > 0;
+        }
+
+        /// <summary>Ağaç önkoşulu yüzünden kilitliyse Inspector'dan girilen uyarı mesajını döndürür. Aksi halde null döner.</summary>
+        public string GetLockedPrerequisiteMessage(UpgradeType type)
+        {
+            EnsureInitialized();
+            if (_nodeTreeLookup.TryGetValue(type, out var tree))
+            {
+                if (tree != null && tree.prerequisiteTree != null && !IsTreeCompleted(tree.prerequisiteTree))
+                {
+                    return tree.lockedTooltipMessage;
+                }
+            }
+            return null;
         }
 
         /// <summary>Mevcut seviyeye göre upgrade değerini döndürür.</summary>
@@ -186,27 +276,30 @@ namespace Managers
             return true;
         }
 
-        /// <summary>Debug için: GameWin hariç tüm upgradeleri max seviyeye çeker.</summary>
-        public void Debug_MaxAllUpgrades()
+        /// <summary>Debug için: Belirtilen ağaçtaki GameWin hariç tüm upgradeleri max seviyeye çeker.</summary>
+        public void Debug_MaxTreeUpgrades(int treeIndex)
         {
             EnsureInitialized();
             
-            var targetTree = treeData;
+            var targetTrees = treeDatas != null && treeDatas.Count > 0 ? treeDatas : new List<UpgradeTreeDataSO>();
             // Eğer Inspector'da unutulduysa UI'dan çekmeyi dene
-            if (targetTree == null)
+            if (targetTrees.Count == 0)
             {
                 var ui = FindObjectOfType<UI.UpgradeTreeUI>();
-                if (ui != null) targetTree = ui.TreeData;
+                if (ui != null && ui.TreeDatas != null) targetTrees = ui.TreeDatas;
             }
 
-            if (targetTree != null && targetTree.rootNode != null)
+            if (targetTrees != null && targetTrees.Count > treeIndex)
             {
-                // Ağacı BFS ile tarayarak baştan (depo) sona doğru ağaç hiyerarşisinde upgrade yap
+                var tTree = targetTrees[treeIndex];
+                if (tTree == null || tTree.rootNode == null) return;
+
+                // Ağacı BFS ile tarayarak baştan sona doğru upgrade yap
                 var queue = new Queue<UpgradeNodeDataSO>();
                 var visited = new HashSet<UpgradeNodeDataSO>();
                 
-                queue.Enqueue(targetTree.rootNode);
-                visited.Add(targetTree.rootNode);
+                queue.Enqueue(tTree.rootNode);
+                visited.Add(tTree.rootNode);
                 
                 while (queue.Count > 0)
                 {
@@ -233,19 +326,11 @@ namespace Managers
                         }
                     }
                 }
-                Debug.Log("⬆️ Tüm upgradelar ağaç bağımlılıklarına dikkat edilerek tek tek maxlandı.");
+                Debug.Log($"⬆️ {treeIndex}. ağacın tüm upgradeları maxlandı.");
             }
             else
             {
-                Debug.LogWarning("[UpgradeManager] UpgradeTreeDataSO referansı BULUNAMADI! Upgradeler rastgele sırada maxlanıyor...");
-                var safeList = new List<KeyValuePair<UpgradeType, UpgradeDataSO>>(_dataLookup);
-                foreach (var kvp in safeList)
-                {
-                    if (kvp.Key == UpgradeType.GameWin) continue;
-                    if (kvp.Value.isInfinite) continue;
-                    _levels[kvp.Key] = kvp.Value.maxLevel;
-                    OnUpgradePurchased?.Invoke(kvp.Key, kvp.Value.maxLevel);
-                }
+                Debug.LogWarning("UI.UpgradeTreeUI içinde ağaç verisi bulunamadı!");
             }
         }
 

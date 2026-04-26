@@ -11,8 +11,7 @@ namespace Gameplay
         [Header("Capacity")]
         [SerializeField] private float baseCapacity = 10f;
 
-        [Header("Magnet")]
-        [SerializeField] private float magnetAttractionSpeed = 8f;
+
 
         [Header("Bucket Prefabs per Level (index = level / 2)")]
         [Tooltip("Her 2 BucketSize level'i için bir prefab. " +
@@ -30,13 +29,8 @@ namespace Gameplay
         public bool  IsFull       => CurrentWater >= MaxCapacity;
         public float FillRatio    => MaxCapacity > 0 ? CurrentWater / MaxCapacity : 0f;
 
-        public bool  IsMagnetized { get; private set; }
-        public float MagnetRange  { get; private set; }
-
         /// <summary>Idle'dayken true → kova açık ve su toplayabilir.</summary>
         public bool IsOpen { get; private set; } = true;
-
-        private float _magnetTimer;
 
         // Görsel / collider referansları (child prefabdan)
         private SpriteRenderer _spriteRenderer;      // Aktif child'ın SpriteRenderer'ı
@@ -61,33 +55,7 @@ namespace Gameplay
             UpgradeManager.OnUpgradePurchased -= HandleUpgrade;
         }
 
-        private void Update()
-        {
-            if (IsMagnetized)
-            {
-                _magnetTimer -= Time.deltaTime;
-                if (_magnetTimer <= 0f) IsMagnetized = false;
-            }
-        }
 
-        private void FixedUpdate()
-        {
-            if (!IsMagnetized) return;
-
-            Collider2D[] nearby = Physics2D.OverlapCircleAll(transform.position, MagnetRange);
-            foreach (var col in nearby)
-            {
-                if (col.TryGetComponent<Raindrop>(out _))
-                {
-                    var rb = col.GetComponent<Rigidbody2D>();
-                    if (rb != null)
-                    {
-                        Vector2 dir = ((Vector2)transform.position - rb.position).normalized;
-                        rb.linearVelocity = dir * magnetAttractionSpeed;
-                    }
-                }
-            }
-        }
 
         // ── Public API ─────────────────────────────────────────────────────────
 
@@ -136,13 +104,7 @@ namespace Gameplay
             CurrencyManager.Instance.NotifyWaterChanged();
         }
 
-        /// <summary>Mıknatısı aktifleştirir.</summary>
-        public void ActivateMagnet(float duration, float range)
-        {
-            IsMagnetized = true;
-            _magnetTimer = duration;
-            MagnetRange  = range;
-        }
+
 
         // ── Upgrade ────────────────────────────────────────────────────────────
 
@@ -218,17 +180,9 @@ namespace Gameplay
             GUIStyle style = new GUIStyle { fontSize = 18 };
             style.normal.textColor = IsFull ? Color.red : Color.cyan;
 
-            string magnetInfo = IsMagnetized ? $" [MAG {_magnetTimer:F1}s]" : "";
             GUILayout.BeginArea(new Rect(20, 50, 300, 60));
-            GUILayout.Label($"Kova: {CurrentWater:F1} / {MaxCapacity:F0} mL{magnetInfo}", style);
+            GUILayout.Label($"Kova: {CurrentWater:F1} / {MaxCapacity:F0} mL", style);
             GUILayout.EndArea();
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            if (!IsMagnetized) return;
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(transform.position, MagnetRange);
         }
     }
 }

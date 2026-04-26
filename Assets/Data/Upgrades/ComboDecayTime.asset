@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Combo Decay Time
   description: 
-  upgradeType: 21
+  upgradeType: 19
   maxLevel: 5
   isInfinite: 0
   baseCost: 12

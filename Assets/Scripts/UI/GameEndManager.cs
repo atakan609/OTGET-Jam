@@ -131,6 +131,8 @@ namespace UI
 
         private void OnRestartClicked()
         {
+            UpgradeManager.Instance?.ResetAllUpgrades();
+
             if (!string.IsNullOrWhiteSpace(gameSceneName))
                 SceneManager.LoadScene(gameSceneName);
             else

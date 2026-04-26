@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Auto Collector Count
   description: 
-  upgradeType: 17
+  upgradeType: 15
   maxLevel: 5
   isInfinite: 0
   baseCost: 30

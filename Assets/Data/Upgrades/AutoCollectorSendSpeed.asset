@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Auto Collector Send Speed
   description: 
-  upgradeType: 19
+  upgradeType: 17
   maxLevel: 5
   isInfinite: 0
   baseCost: 25

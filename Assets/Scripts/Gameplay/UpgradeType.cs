@@ -20,9 +20,7 @@ namespace Gameplay
         PlayerSpeed,            // Hareket hızı
 
         // --- Yıldırım & Mıknatıs ---
-        LightningFrequency,     // Yıldırım düşme sıklığı
-        MagnetDuration,         // Mıknatıs efektinin süresi
-        MagnetRange,            // Mıknatıs çekim yarıçapı
+        ReduceLightningPenalty, // Yıldırımın vurduğu su/stun cezasını (%) azaltır
 
         // --- Depo ---
         BuyWaterDepot,          // Depo binasını aktif hale getirir
