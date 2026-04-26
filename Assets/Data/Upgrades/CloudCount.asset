@@ -17,7 +17,7 @@ MonoBehaviour:
   upgradeType: 5
   maxLevel: 5
   isInfinite: 0
-  baseCost: 20
-  costMultiplier: 1.6
+  baseCost: 15
+  costMultiplier: 1.5
   baseValue: 0
   valuePerLevel: 1

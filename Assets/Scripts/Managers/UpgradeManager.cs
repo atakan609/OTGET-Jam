@@ -353,7 +353,7 @@ namespace Managers
             {
                 if (data == null) continue;
                 int lvl = GetLevel(data.upgradeType);
-                string maxTag = lvl >= data.maxLevel ? " [MAX]" : $" (next: {GetNextCost(data.upgradeType)} mL)";
+                string maxTag = lvl >= data.maxLevel ? " [MAX]" : $" (next: {CurrencyManager.FormatWater(GetNextCost(data.upgradeType))})";
                 GUILayout.Label($"{data.upgradeName}: Lv{lvl}/{data.maxLevel}{maxTag}", style);
             }
             GUILayout.EndArea();

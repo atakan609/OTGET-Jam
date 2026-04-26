@@ -175,14 +175,5 @@ namespace Gameplay
         }
 
         // ── Debug ──────────────────────────────────────────────────────────────
-        private void OnGUI()
-        {
-            GUIStyle style = new GUIStyle { fontSize = 18 };
-            style.normal.textColor = IsFull ? Color.red : Color.cyan;
-
-            GUILayout.BeginArea(new Rect(20, 50, 300, 60));
-            GUILayout.Label($"Kova: {CurrentWater:F1} / {MaxCapacity:F0} mL", style);
-            GUILayout.EndArea();
-        }
     }
 }

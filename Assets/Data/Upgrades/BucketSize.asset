@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -17,7 +17,7 @@ MonoBehaviour:
   upgradeType: 9
   maxLevel: 7
   isInfinite: 0
-  baseCost: 5
-  costMultiplier: 1.3
+  baseCost: 8
+  costMultiplier: 1.35
   baseValue: 0
-  valuePerLevel: 10
+  valuePerLevel: 50

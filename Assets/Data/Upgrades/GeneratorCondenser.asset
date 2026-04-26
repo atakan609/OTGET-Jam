@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Generator Condenser
   description: 
-  upgradeType: 27
-  maxLevel: 2
+  upgradeType: 26
+  maxLevel: 3
   isInfinite: 1
-  baseCost: 250
+  baseCost: 180
   costMultiplier: 1.22
   baseValue: 0
-  valuePerLevel: 4
+  valuePerLevel: 5

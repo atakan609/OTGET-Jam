@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Generator Ground Water
   description: 
-  upgradeType: 25
+  upgradeType: 24
   maxLevel: 5
   isInfinite: 1
-  baseCost: 50
+  baseCost: 40
   costMultiplier: 1.18
   baseValue: 0
-  valuePerLevel: 1
+  valuePerLevel: 2

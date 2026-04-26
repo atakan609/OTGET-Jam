@@ -36,7 +36,6 @@ namespace Gameplay
         ComboMaxMultiplier,     // Kombo sistemi max çarpan
         CriticalChance,         // Çift para şansı
         InterestRate,           // Toplam currency üzerinden saniyede % faiz
-        PassiveIncome,          // Saniyede otomatik para kazanımı
 
         // --- Pasif Gelir Üreteçleri (Generators) ---
         GeneratorWell,          // Kuyu - pasif mL/sn

@@ -61,17 +61,6 @@ namespace Managers
             return Mathf.Min(mult, maxMult);
         }
 
-        private void OnGUI()
-        {
-            if (_comboCount <= 1) return;
-
-            GUIStyle style = new GUIStyle();
-            style.fontSize = 20;
-            style.normal.textColor = Color.yellow;
-
-            GUILayout.BeginArea(new Rect(20, 110, 300, 40));
-            GUILayout.Label($"Kombo x{_comboCount}  →  {Multiplier:F2}x  ({_decayTimer:F1}s)", style);
-            GUILayout.EndArea();
-        }
+        public float DecayTimer => _decayTimer;
     }
 }

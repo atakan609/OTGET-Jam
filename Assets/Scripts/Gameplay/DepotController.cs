@@ -225,16 +225,6 @@ namespace Gameplay
 
         // ── Debug ─────────────────────────────────────────────────────────────────
 
-        private void OnGUI()
-        {
-            if (_disabled) return;
-            GUIStyle style = new GUIStyle { fontSize = 16 };
-            style.normal.textColor = Color.green;
-
-            GUILayout.BeginArea(new Rect(20, 80, 300, 40));
-            GUILayout.Label($"Depo: {StoredWater:F1} / {MaxCapacity:F0} mL", style);
-            GUILayout.EndArea();
-        }
 
         private void OnDrawGizmosSelected()
         {

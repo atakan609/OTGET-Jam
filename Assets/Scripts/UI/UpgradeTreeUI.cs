@@ -494,7 +494,7 @@ namespace UI
             }
 
             RecalculateContentSize(positions);
-            CenterView();
+            // CenterView() burada çağrılmıyor — upgrade alınca view pozisyonu korunur
         }
 
         private UpgradeNodeDataSO FindNodeByType(UpgradeType type)
@@ -617,11 +617,14 @@ namespace UI
                 {
                     float curVal = data.GetValue(currentLevel);
                     float nextVal = data.GetValue(currentLevel + 1);
-                    string unit = "mL"; // Daha spesifik yapmak gerekebilir ileride
+                    
+                    string curFormatted = Managers.CurrencyManager.FormatWater(curVal);
+                    string diffFormatted = Managers.CurrencyManager.FormatWater(nextVal - curVal);
+                    string nextFormatted = Managers.CurrencyManager.FormatWater(nextVal);
 
                     string desc = data.description + "\n";
-                    desc += $"<color=#A0A0A0>Current:</color> <color=#FFFFFF>{curVal}{unit}</color>\n";
-                    if (!isMax) desc += $"<color=#A0A0A0>Next:</color> <color=#00FF00>+{nextVal - curVal}{unit} ({nextVal}{unit})</color>\n";
+                    desc += $"<color=#A0A0A0>Current:</color> <color=#FFFFFF>{curFormatted}</color>\n";
+                    if (!isMax) desc += $"<color=#A0A0A0>Next:</color> <color=#00FF00>+{diffFormatted} ({nextFormatted})</color>\n";
                     
                     string lvlTag = data.isInfinite ? $"Lv{currentLevel}" : $"Lv{currentLevel}/{data.maxLevel}";
                     desc += $"<size=80%><color=#FFD700>{lvlTag}</color></size>";
@@ -632,7 +635,7 @@ namespace UI
                 if (tooltipCostText != null)
                 {
                     if (isMax) tooltipCostText.text = "<color=#FF4444>MAXED OUT</color>";
-                    else tooltipCostText.text = $"Cost: <color=#00CCFF>{nextCost} mL</color>";
+                    else tooltipCostText.text = $"Cost: <color=#00CCFF>{Managers.CurrencyManager.FormatWater(nextCost)}</color>";
                 }
             }
 

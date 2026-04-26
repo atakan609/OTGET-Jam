@@ -83,6 +83,20 @@ namespace Managers
             }
         }
 
+        /// <summary>Tüm generatörlerin toplam saniyede mL üretimini döndürür.</summary>
+        public float GetTotalIncomePerSecond()
+        {
+            if (UpgradeManager.Instance == null) return 0f;
+            float total = 0f;
+            foreach (var kvp in _lookup)
+            {
+                int level = UpgradeManager.Instance.GetLevel(kvp.Key);
+                if (level > 0)
+                    total += level * kvp.Value.mlPerSecondPerLevel;
+            }
+            return total;
+        }
+
         private void HandleUpgrade(UpgradeType type, int newLevel)
         {
             if (_lookup.TryGetValue(type, out var gen))

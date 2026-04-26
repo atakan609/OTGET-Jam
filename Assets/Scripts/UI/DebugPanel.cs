@@ -75,9 +75,9 @@ public class DebugPanel : MonoBehaviour
 
         // ─── PARA ───────────────────────────────────────────────────────────
         GUILayout.Label("── PARA ──", sectionStyle);
-        if (GUILayout.Button($"+ {addMoneyAmount} mL (Depoya)"))
+        if (GUILayout.Button($"+ {CurrencyManager.FormatWater(addMoneyAmount)} (Depoya)"))
             Debug_AddMoney(addMoneyAmount);
-        if (GUILayout.Button($"+ {addMoneyAmount * 10f} mL (Depoya)"))
+        if (GUILayout.Button($"+ {CurrencyManager.FormatWater(addMoneyAmount * 10f)} (Depoya)"))
             Debug_AddMoney(addMoneyAmount * 10f);
         DrawSeparator();
 

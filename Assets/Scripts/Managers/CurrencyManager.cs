@@ -7,6 +7,11 @@ namespace Managers
 {
     public class CurrencyManager : Singleton<CurrencyManager>
     {
+        // ── Currency UI Font Ayarları ──────────────────────────────────────────
+        [Header("Currency UI")]
+        [SerializeField] private int totalFontSize  = 36;
+        [SerializeField] private int subFontSize     = 22;
+
         // Referanslar
         private BucketController _playerBucket;
         private DepotController _depot;
@@ -34,7 +39,6 @@ namespace Managers
         private void Update()
         {
             ApplyInterest();
-            ApplyPassiveIncome();
         }
 
         // ── Faiz & Pasif Gelir ───────────────────────────────────────────────────
@@ -54,16 +58,6 @@ namespace Managers
             }
         }
 
-        private void ApplyPassiveIncome()
-        {
-            if (UpgradeManager.Instance == null) return;
-            float income = UpgradeManager.Instance.GetCurrentValue(UpgradeType.PassiveIncome);
-            if (income <= 0f || _depot == null) return;
-
-            float gained = income * Time.deltaTime;
-            _depot.AddWater(gained);
-            OnCurrencyChanged?.Invoke(TotalCurrency);
-        }
 
         // ── Public API ───────────────────────────────────────────────────────────
 
@@ -112,18 +106,108 @@ namespace Managers
             return _depot != null ? _depot.StoredWater : 0f;
         }
 
-        // ── Debug ────────────────────────────────────────────────────────────────
+        // ── Yardımcı Araçlar ───────────────────────────────────────────────────
+        public static string FormatWater(float ml)
+        {
+            if (ml >= 1000f)
+            {
+                return (ml / 1000f).ToString("F1") + " L";
+            }
+            return ml.ToString("F1") + " mL";
+        }
+
+        // ── Gelir Hesaplama ──────────────────────────────────────────────────────
+        /// <summary>Toplam saniyedeki su kazancını hesaplar (generator + pasif gelir + faiz).</summary>
+        public float GetIncomePerSecond()
+        {
+            if (UpgradeManager.Instance == null) return 0f;
+
+            // Faiz (mevcut total currency × oran)
+            float interestRate = UpgradeManager.Instance.GetCurrentValue(UpgradeType.InterestRate);
+            float income = TotalCurrency * interestRate;
+
+            // Generator pasif gelirleri
+            var genMgr = FindObjectOfType<GeneratorManager>();
+            if (genMgr != null)
+                income += genMgr.GetTotalIncomePerSecond();
+
+            return income;
+        }
+
+        // ── Debug / Currency UI ──────────────────────────────────────────────────
         private void OnGUI()
         {
-            GUIStyle style = new GUIStyle();
-            style.fontSize = 24;
-            style.normal.textColor = Color.white;
 
-            float mult = GlobalMultiplier * (ComboManager.Instance != null ? ComboManager.Instance.Multiplier : 1f);
+            float bucketWater    = GetBucketWater();
+            float bucketMax      = _playerBucket != null ? _playerBucket.MaxCapacity : 0f;
+            float depotWater     = GetDepotWater();
+            float depotMax       = _depot != null ? _depot.MaxCapacity : 0f;
+            float total          = TotalCurrency;
+            float incomePS       = GetIncomePerSecond();
+            var   combo          = ComboManager.Instance;
+            bool  hasDepot    = UpgradeManager.Instance != null &&
+                                  UpgradeManager.Instance.GetLevel(UpgradeType.BuyWaterDepot) >= 1;
+            bool  showCombo   = combo != null && combo.ComboCount > 1;
 
-            GUILayout.BeginArea(new Rect(20, 20, 350, 40));
-            GUILayout.Label($"{TotalCurrency:F1} mL  (K:{GetBucketWater():F1} + D:{GetDepotWater():F1})  ×{mult:F2}", style);
+            // ── Stiller ─────────────────────────────────────────────────────────
+            GUIStyle MakeStyle(int size, Color color, bool bold = true)
+            {
+                var s = new GUIStyle(GUI.skin.label);
+                s.fontSize  = size;
+                s.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+                s.normal.textColor = color;
+                s.font = null;
+                return s;
+            }
+
+            var totalStyle  = MakeStyle(totalFontSize, Color.white);
+            var bucketStyle = MakeStyle(subFontSize,   new Color(0.3f, 0.65f, 1f));
+            var depotStyle  = MakeStyle(subFontSize,   new Color(0.1f, 0.9f,  0.4f));
+            var incomeStyle = MakeStyle(subFontSize,   new Color(0.1f, 0.9f,  0.4f));
+            var comboStyle  = MakeStyle(subFontSize,   Color.yellow);
+
+            float rowH = subFontSize + 8f;
+            float topH = totalFontSize + 12f;
+            float x    = 20f;
+            float y    = 16f;
+
+            // Satır 1: Toplam + gelir/sn
+            GUILayout.BeginArea(new Rect(x, y, 440f, topH));
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"💧 {FormatWater(total)}", totalStyle);
+            GUILayout.FlexibleSpace();
+            if (incomePS > 0f)
+                GUILayout.Label($"+{FormatWater(incomePS)}/sn", incomeStyle);
+            GUILayout.EndHorizontal();
             GUILayout.EndArea();
+            y += topH;
+
+            // Satır 2: Kova
+            GUILayout.BeginArea(new Rect(x, y, 440f, rowH));
+            bool kovaDolu        = _playerBucket != null && _playerBucket.IsFull;
+            var  realBucketStyle = kovaDolu
+                ? MakeStyle(subFontSize, new Color(1f, 0.35f, 0.35f))
+                : bucketStyle;
+            GUILayout.Label($"🪣 Kova: {FormatWater(bucketWater)} / {FormatWater(bucketMax)}", realBucketStyle);
+            GUILayout.EndArea();
+            y += rowH;
+
+            // Satır 3: Depo (sadece BuyWaterDepot alındıktan sonra)
+            if (hasDepot)
+            {
+                GUILayout.BeginArea(new Rect(x, y, 440f, rowH));
+                GUILayout.Label($"🏛 Depo: {FormatWater(depotWater)} / {FormatWater(depotMax)}", depotStyle);
+                GUILayout.EndArea();
+                y += rowH;
+            }
+
+            // Satır 4 (opsiyonel): Kombo
+            if (showCombo)
+            {
+                GUILayout.BeginArea(new Rect(x, y, 440f, rowH));
+                GUILayout.Label($"⚡ Kombo x{combo.ComboCount}  →  {combo.Multiplier:F2}x  ({combo.DecayTimer:F1}s)", comboStyle);
+                GUILayout.EndArea();
+            }
         }
     }
 }

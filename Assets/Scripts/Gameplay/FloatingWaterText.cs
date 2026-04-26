@@ -159,7 +159,7 @@ namespace Gameplay
         {
             if (textComponent == null) return;
             string sign = _isNegative ? "-" : "+";
-            textComponent.text  = sign + _accumulated.ToString("F1") + " ml";
+            textComponent.text  = sign + Managers.CurrencyManager.FormatWater(_accumulated);
             Color c = _baseTextColor;
             c.a = 1f;
             textComponent.color = c;

@@ -46,22 +46,22 @@ namespace UI
         [Tooltip("Adım 1: Hareketi öğretme mesajı.")]
         [TextArea(3, 6)]
         [SerializeField] private string step1Text =
-            "🎮 Hoş Geldin!\n\nHareket etmek için A / D veya ← → tuşlarını kullan.\n\nBiraz hareket et!";
+            "Welcome!\n\nUse A / D or the arrow keys to move.\n\nMove around a little!";
 
-        [Tooltip("Adım 2: Yağmur damlası toplamayı öğretme mesajı. {0} = hedef ml miktarı")]
+        [Tooltip("Adım 2: Yağmur damlası toplamayı öğretme mesajı. {0} = hedef miktarı ve birimi (ör: 50.0 mL)")]
         [TextArea(3, 6)]
         [SerializeField] private string step2Text =
-            "💧 Harika!\n\nŞimdi dur ve yağmur damlalarının kovanına dolmasını bekle.\n\n{0} ml su topla!";
+            "Good job!\n\nStand still and let the raindrops fall into your bucket.\n\nCollect {0} of water!\n\nWatch out for lightning — it will drain your bucket and stun you!";
 
         [Tooltip("Adım 3: Upgrade ağacını ve depo satın almayı öğretme mesajı.")]
         [TextArea(3, 6)]
         [SerializeField] private string step3Text =
-            "⬆️ Süper!\n\nU tuşuna bas ve Upgrade Ağacını aç.\n\nDepo yükseltmesini satın al —\nbu, suyu depolamanı sağlayacak!";
+            "Nice!\n\nPress U to open the Upgrade Tree.\n\nBuy the Water Depot upgrade —\nit lets you store water between runs!";
 
         [Tooltip("Adım 4: Deponun işlevini anlatan mesaj.")]
         [TextArea(3, 6)]
         [SerializeField] private string step4Text =
-            "🏗️ Mükemmel!\n\nDepona ulaşmak için yanına git.\nKovan otomatik olarak boşalacak.\n\nBiriktirdiğin su para kazanmanda kullanılacak.\n\nİyi şanslar!";
+            "Great!\n\nWalk to your depot to unload your bucket automatically.\n\nThe stored water will fund your upgrades.\n\nGood luck!";
 
         // ── Ayarlar ────────────────────────────────────────────────────────────
 
@@ -139,7 +139,7 @@ namespace UI
 
             // ─── ADIM 2: DAMLA TOPLAMA ────────────────────────────────────────
             yield return new WaitForSeconds(stepDelay);
-            SetText(string.Format(step2Text, waterCollectTarget.ToString("F0")));
+            SetText(string.Format(step2Text, Managers.CurrencyManager.FormatWater(waterCollectTarget)));
             yield return WaitUntilWaterCollected(waterCollectTarget);
 
             // ─── ADIM 3: UPGRADE / DEPO ALMA ─────────────────────────────────
