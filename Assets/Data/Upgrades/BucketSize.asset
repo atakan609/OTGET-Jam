@@ -15,9 +15,9 @@ MonoBehaviour:
   upgradeName: Bucket Size
   description: 
   upgradeType: 9
-  maxLevel: 8
+  maxLevel: 7
   isInfinite: 0
   baseCost: 5
   costMultiplier: 1.3
   baseValue: 0
-  valuePerLevel: 3
+  valuePerLevel: 10

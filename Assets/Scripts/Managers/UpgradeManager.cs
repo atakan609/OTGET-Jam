@@ -40,9 +40,12 @@ namespace Managers
         {
             if (node == null || node.upgradeData == null) return;
 
-            // Eğer bu upgrade verisi listede (upgrades[]) yoksa bile ağaçta olduğu için lookup'a ekleyelim
-            // Daima ağaçtaki veriyi baz alması için eziyoruz (eski inspector referanslarına karşı)
+            // Daima ağaçtaki veriyi baz alması için eziyoruz
             _dataLookup[node.upgradeData.upgradeType] = node.upgradeData;
+
+            // _levels'ta yoksa 0 ile başlat (KeyNotFoundException önlemi)
+            if (!_levels.ContainsKey(node.upgradeData.upgradeType))
+                _levels[node.upgradeData.upgradeType] = 0;
 
             if (node.children == null) return;
 
@@ -51,7 +54,7 @@ namespace Managers
                 if (child != null && child.upgradeData != null)
                 {
                     _parentLookup[child.upgradeData.upgradeType] = node.upgradeData.upgradeType;
-                    TraverseNode(child); // Recursive
+                    TraverseNode(child);
                 }
             }
         }
@@ -103,7 +106,9 @@ namespace Managers
             // PARENT KİLİDİ KONTROLÜ
             if (!IsUnlocked(type)) return false;
 
-            int currentLevel = GetLevel(type);
+            int currentLevel = GetLevel(type); // GetLevel zaten 0 döner, ama _levels'ı da garantile
+            if (!_levels.ContainsKey(type)) _levels[type] = 0;
+
             if (!data.isInfinite && currentLevel >= data.maxLevel) return false;
 
             int cost = data.GetCost(currentLevel);

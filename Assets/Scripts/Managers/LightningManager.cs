@@ -1,46 +1,27 @@
+using UnityEngine;
 using Core;
 using Gameplay;
-using UnityEngine;
 
 namespace Managers
 {
     public class LightningManager : Singleton<LightningManager>
     {
-        [Header("Lightning Settings")]
-        [SerializeField]
-        private GameObject lightningPrefab;
+        [Header("Lightning Prefab")]
+        [SerializeField] private GameObject lightningPrefab;
 
         [Header("Spawn Interval (Base)")]
-        [SerializeField]
-        private float baseMinInterval = 8f;
+        [SerializeField] private float baseMinInterval = 11f;
+        [SerializeField] private float baseMaxInterval = 15f;
 
-        [SerializeField]
-        private float baseMaxInterval = 20f;
+        [Header("Ground Detection")]
+        [Tooltip("Yıldırımın zemini bulmak için attığı Raycast'in filter'ı. Ground layer'ı seçin.")]
+        [SerializeField] private LayerMask groundLayer;
+        [SerializeField] private float raycastMaxDistance = 40f;
+        [SerializeField] private float fallbackGroundY = -5f; // Zemin bulunamazsa varsayılan
 
-        [Header("Fallback Spawn (Bulut Yoksa)")]
-        [SerializeField]
-        private float spawnMinX = -10f;
-
-        [SerializeField]
-        private float spawnMaxX = 10f;
-
-        [SerializeField]
-        private float fallbackSpawnY = 12f;
-
-        [Header("Lightning Y Offset (Bulutun Altından)")]
-        [SerializeField]
-        private float cloudSpawnYOffset = -0.5f;
-
-        [Header("Magnet Values (Base)")]
-        [SerializeField]
-        private float baseMagnetDuration = 3f;
-
-        [SerializeField]
-        private float baseMagnetRange = 4f;
-
-        [Header("Visuals")]
-        [SerializeField]
-        private float lightningZOffset = 1f; // Bulutların arkasında kalması için (Pozitif Z)
+        [Header("Magnet Values (Base) – İleride kaldırılacak")]
+        [SerializeField] private float baseMagnetDuration = 3f;
+        [SerializeField] private float baseMagnetRange = 4f;
 
         private float _nextSpawnTime;
 
@@ -54,133 +35,82 @@ namespace Managers
         {
             if (Time.time >= _nextSpawnTime)
             {
-                SpawnLightning();
+                TrySpawnFromCloud();
                 ScheduleNext();
             }
         }
 
-        private void SpawnLightning()
+        // ── Spawn Logic ────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Aktif bulutlardan birinin tam pozisyonundan yıldırım çaktırır.
+        /// Bulut yoksa sessizce geçer (spawn olmaz).
+        /// </summary>
+        private void TrySpawnFromCloud()
         {
-            if (lightningPrefab == null)
-                return;
+            if (lightningPrefab == null) return;
+            if (CloudManager.Instance == null) return;
 
-            Vector3 cloudPos = GetRandomCloudPosition();
-            float groundY = FindGroundY(cloudPos.x, cloudPos.y);
+            var clouds = CloudManager.Instance.GetActiveClouds();
+            if (clouds == null || clouds.Count == 0) return;
 
-            // Z eksenini bulutun arkasına atıyoruz
-            Vector3 spawnPos = new Vector3(cloudPos.x, cloudPos.y, lightningZOffset);
+            // Rastgele bir bulut seç; bulutun çerçeve-içi güncel pozisyonunu al
+            var cloud = clouds[Random.Range(0, clouds.Count)];
+            if (cloud == null) return;
 
-            GameObject obj = Instantiate(lightningPrefab, spawnPos, Quaternion.identity);
-            var lightning = obj.GetComponent<Lightning>();
-            lightning?.Initialize(cloudPos.x, cloudPos.y, groundY);
+            SpawnAt(cloud.transform.position.x, cloud.transform.position.y);
         }
 
-        /// <summary>Sahnedeki aktif bulutlardan birini rastgele seçer.</summary>
-        private Vector3 GetRandomCloudPosition()
+        /// <summary>StormCloud gibi dış kaynaklar anlık yıldırım tetikleyebilir.</summary>
+        public void SpawnImmediateLightning(float cloudX, float cloudY)
         {
-            var clouds = FindObjectsByType<Cloud>(FindObjectsSortMode.None);
-            var storms = FindObjectsByType<StormCloud>(FindObjectsSortMode.None);
-            int total = clouds.Length + storms.Length;
-
-            if (total == 0)
-                return new Vector3(Random.Range(spawnMinX, spawnMaxX), fallbackSpawnY, 0f);
-
-            int index = Random.Range(0, total);
-            return index < clouds.Length
-                ? clouds[index].transform.position
-                : storms[index - clouds.Length].transform.position;
+            SpawnAt(cloudX, cloudY);
         }
 
-        /// <summary>Verilen X konumundan aşağıya Raycast atarak zemin Y'sini bulur.</summary>
-        private float FindGroundY(float x, float fromY)
+        private void SpawnAt(float cloudX, float cloudY)
         {
-            // Raycast'i ekranın yeterince yukarısından başlat (zemin kaçmasın)
-            Vector2 startPos = new Vector2(x, fromY);
+            if (lightningPrefab == null) return;
 
+            // Rastgele X ofseti (bulutun hep merkezinden çıkmasın diye)
+            float randomX = cloudX + Random.Range(-3f, 3f);
+
+            // 15 birimlik aşağı doğru raycast at (Sadece spawn şartı)
             RaycastHit2D hit = Physics2D.Raycast(
-                startPos,
+                new Vector2(randomX, cloudY),
                 Vector2.down,
-                10f,
-                LayerMask.GetMask("Ground")
+                15f, // Sadece 15 birim uzağa kadar bakar
+                groundLayer
             );
 
-            // Editörde görmek için sahne ekranına çiz (Scene view)
-            Debug.DrawRay(
-                startPos,
-                Vector2.down * 10f,
-                hit.collider != null ? Color.green : Color.red,
-                0.5f
-            );
-
-            if (hit.collider != null)
+            // Eğer zemin bulamazsa çık (spawn iptal)
+            if (hit.collider == null)
             {
-                return hit.point.y + 5f;
+                return;
             }
 
-            // Geçici fallback (kendi zemin seviyenize göre bu rakamı güncelleyebilirsiniz)
-            return 2.25f;
+            // "Yıldırımların konumu vb hiçbir şeyi bu raycast'e bağlama"
+            // Raycast sadece şart sağlasın diye kullanıldı, pozisyonlar kendi fallback'imizden devam eder
+            float groundY = fallbackGroundY;
+
+            GameObject obj = Instantiate(lightningPrefab, new Vector3(randomX, cloudY, 0f), Quaternion.identity);
+            Lightning lightning = obj.GetComponent<Lightning>();
+            if (lightning != null)
+                lightning.Initialize(randomX, cloudY, groundY);
         }
 
         private void ScheduleNext()
         {
-            float freqBonus =
-                UpgradeManager.Instance != null
-                    ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.LightningFrequency)
-                    : 0f;
+            float freqBonus = UpgradeManager.Instance != null
+                ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.LightningFrequency)
+                : 0f;
 
             float min = Mathf.Max(2f, baseMinInterval - freqBonus);
             float max = Mathf.Max(min + 1f, baseMaxInterval - freqBonus);
             _nextSpawnTime = Time.time + Random.Range(min, max);
         }
 
-        // ── Public API ─────────────────────────────────────────────────────────
-
-        public float GetMagnetDuration()
-        {
-            float bonus =
-                UpgradeManager.Instance != null
-                    ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.MagnetDuration)
-                    : 0f;
-            return baseMagnetDuration + bonus;
-        }
-
-        public float GetMagnetRange()
-        {
-            float bonus =
-                UpgradeManager.Instance != null
-                    ? UpgradeManager.Instance.GetCurrentValue(UpgradeType.MagnetRange)
-                    : 0f;
-            return baseMagnetRange + bonus;
-        }
-
-        /// <summary>StormCloud gibi dış kaynaklar belirli bir X konumunda yıldırım spawn edebilir.</summary>
-        public void SpawnImmediateLightning(float x)
-        {
-            if (lightningPrefab == null)
-                return;
-
-            // En yakın bulutu bul, oradan başlat
-            float cloudY = fallbackSpawnY;
-            var clouds = FindObjectsByType<Cloud>(FindObjectsSortMode.None);
-            float closestDist = float.MaxValue;
-            foreach (var c in clouds)
-            {
-                float dist = Mathf.Abs(c.transform.position.x - x);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    cloudY = c.transform.position.y;
-                }
-            }
-
-            float groundY = FindGroundY(x, cloudY);
-
-            // Z eksenini bulutun arkasına atıyoruz
-            Vector3 spawnPos = new Vector3(x, cloudY, lightningZOffset);
-
-            GameObject obj = Instantiate(lightningPrefab, spawnPos, Quaternion.identity);
-            var lightning = obj.GetComponent<Lightning>();
-            lightning?.Initialize(x, cloudY, groundY);
-        }
+        // ── Legacy API (BucketController hâlâ bunları okuyabilir) ─────────────
+        public float GetMagnetDuration() => baseMagnetDuration;
+        public float GetMagnetRange()    => baseMagnetRange;
     }
 }

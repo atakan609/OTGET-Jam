@@ -225,6 +225,7 @@ MonoBehaviour:
   warningObject: {fileID: 7725324132466708654}
   lightningBoltObject: {fileID: 3011511174119037227}
   strikeWidth: 0.6
+  strikeHeight: 8
   playerLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
