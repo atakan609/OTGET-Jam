@@ -59,9 +59,8 @@ namespace UI
             int currentLevel = UpgradeManager.Instance.GetLevel(type);
             int maxLevel = _nodeData.upgradeData.maxLevel;
             
-            // Eğer root node ise (parent null) daima kilidi açıktır
-            // Değilse, parent en az 1 kere satın alınmışsa kilidi açılır
-            bool isUnlocked = _parentNodeData == null || UpgradeManager.Instance.GetLevel(_parentNodeData.upgradeData.upgradeType) > 0;
+            // Kilit kontrolünü UpgradeManager'a devret; multi-parent desteği için merkezi kaynak doğrudur.
+            bool isUnlocked = UpgradeManager.Instance.IsUnlocked(type);
             bool isInfinite = _nodeData.upgradeData.isInfinite;
 
             if (!isInfinite && currentLevel >= maxLevel)

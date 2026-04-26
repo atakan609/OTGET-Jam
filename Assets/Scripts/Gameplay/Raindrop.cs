@@ -60,54 +60,40 @@ namespace Gameplay
             if (other.GetComponent<Raindrop>() != null || other.GetComponent<Cloud>() != null)
                 return;
 
-            // Oyuncuya değerse → kovaya su ekle (kombo ve çarpanlar uygulanır)
-            if (other.CompareTag("Player"))
+            // Çarpılan collider Player'ın BucketController'ının altındaki
+            // bucket prefab'a mı ait? Yoksa yoksay ve yok ol.
+            var bucket = other.GetComponentInParent<BucketController>();
+            if (bucket == null)
             {
-                var bucket = other.GetComponentInChildren<BucketController>();
-                if (bucket != null)
+                Destroy(gameObject);
+                return;
+            }
+
+            // Kova bulundu → su ekle (kombo ve çarpanlar uygulanır)
+            float comboMult  = ComboManager.Instance   != null ? ComboManager.Instance.Multiplier           : 1f;
+            float globalMult = CurrencyManager.Instance != null ? CurrencyManager.Instance.GlobalMultiplier : 1f;
+            float critChance = CurrencyManager.Instance != null ? CurrencyManager.Instance.CritChance       : 0f;
+            float critMult   = (Random.value < critChance) ? 2f : 1f;
+
+            float finalValue = dropValue * comboMult * globalMult * critMult;
+            bool added = bucket.TryAddWater(finalValue);
+
+            if (added)
+            {
+                if (floatingTextPrefab != null)
                 {
-                    float comboMult  = ComboManager.Instance  != null ? ComboManager.Instance.Multiplier           : 1f;
-                    float globalMult = CurrencyManager.Instance != null ? CurrencyManager.Instance.GlobalMultiplier : 1f;
-                    float critChance = CurrencyManager.Instance != null ? CurrencyManager.Instance.CritChance       : 0f;
-                    float critMult   = (Random.value < critChance) ? 2f : 1f;
-
-                    float finalValue = dropValue * comboMult * globalMult * critMult;
-                    bool added = bucket.TryAddWater(finalValue);
-
-                    if (added)
-                    {
-                        // Floating text: altınsa altın rengi, normalse mavi
-                        if (floatingTextPrefab != null)
-                        {
-                            Color dropColor = isGolden
-                                ? new Color(1f, 0.84f, 0f)  // altın sarısı
-                                : new Color(0.3f, 0.7f, 1f); // açık mavi
-
-                            Vector3 spawnPos = bucket.transform.position + Vector3.up * 0.8f;
-                            var obj = Instantiate(floatingTextPrefab, spawnPos, Quaternion.identity);
-                            var ft  = obj.GetComponent<FloatingWaterText>();
-                            ft?.SetupAndFly(finalValue, dropColor);
-                        }
-                        // One-shot toplama sesi
-                        SoundManager.Instance?.PlayRaindropCollect();
-                        // Kombo
-                        ComboManager.Instance?.RegisterCollection();
-                    }
+                    Color dropColor = isGolden
+                        ? new Color(1f, 0.84f, 0f)
+                        : new Color(0.3f, 0.7f, 1f);
+                    Vector3 spawnPos = bucket.transform.position + Vector3.up * 0.8f;
+                    var obj = Instantiate(floatingTextPrefab, spawnPos, Quaternion.identity);
+                    var ft  = obj.GetComponent<FloatingWaterText>();
+                    ft?.SetupAndFly(finalValue, dropColor);
                 }
-                Destroy(gameObject);
-                return;
+                SoundManager.Instance?.PlayRaindropCollect();
+                ComboManager.Instance?.RegisterCollection();
             }
 
-            // Sabit kova varsa onun içine düş
-            var staticBucket = other.GetComponent<StaticBucket>();
-            if (staticBucket != null)
-            {
-                staticBucket.TryAddWater(dropValue);
-                Destroy(gameObject);
-                return;
-            }
-
-            // Diğer her yüzeye değince yok ol
             Destroy(gameObject);
         }
 

@@ -70,9 +70,10 @@ namespace Managers
         /// <summary>
         /// Önce depodaki su harcanır. Yetmezse kova eksiltilir.
         /// </summary>
-        public bool SpendCurrency(int amount)
+        public bool SpendCurrency(float amount)
         {
-            if (TotalCurrency < amount) return false;
+            // Küçük float yuvarlama farklarını tolere etmek için epsilon kullan
+            if (TotalCurrency < amount - 0.001f) return false;
 
             float remaining = amount;
 

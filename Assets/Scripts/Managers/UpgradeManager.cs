@@ -23,8 +23,9 @@ namespace Managers
         // UpgradeType → Hangi ağaca ait (Önkoşul kontrolü için)
         private Dictionary<UpgradeType, UpgradeTreeDataSO> _nodeTreeLookup = new Dictionary<UpgradeType, UpgradeTreeDataSO>();
 
-        // UpgradeType → Parent UpgradeType lookup (Kilit kontrolü için)
-        private Dictionary<UpgradeType, UpgradeType> _parentLookup = new Dictionary<UpgradeType, UpgradeType>();
+        // UpgradeType → Parent UpgradeType listesi (Kilit kontrolü için)
+        // Bir node birden fazla yerde child olarak görünebilir; herhangi bir parent alınmışsa kilidi açılır.
+        private Dictionary<UpgradeType, List<UpgradeType>> _parentLookup = new Dictionary<UpgradeType, List<UpgradeType>>();
 
         public static event Action<UpgradeType, int> OnUpgradePurchased;
 
@@ -67,7 +68,11 @@ namespace Managers
             {
                 if (child != null && child.upgradeData != null)
                 {
-                    _parentLookup[child.upgradeData.upgradeType] = node.upgradeData.upgradeType;
+                    var childType = child.upgradeData.upgradeType;
+                    if (!_parentLookup.ContainsKey(childType))
+                        _parentLookup[childType] = new List<UpgradeType>();
+                    if (!_parentLookup[childType].Contains(node.upgradeData.upgradeType))
+                        _parentLookup[childType].Add(node.upgradeData.upgradeType);
                     TraverseNode(child, currentTree, visited);
                 }
             }
@@ -210,10 +215,14 @@ namespace Managers
             if (treeDatas == null || treeDatas.Count == 0) return true;
 
             // _parentLookup'ta bu type yoksa → ya root'tur, ya da ağaçta tanımsızdır.
-            if (!_parentLookup.TryGetValue(type, out UpgradeType parentType)) return true;
+            if (!_parentLookup.TryGetValue(type, out List<UpgradeType> parents)) return true;
 
-            // Parent'ı varsa → parent en az 1 kere satın alınmış olmalı.
-            return GetLevel(parentType) > 0;
+            // Birden fazla parent olabilir → herhangi biri alınmışsa kilidi açılır.
+            foreach (var parentType in parents)
+            {
+                if (GetLevel(parentType) > 0) return true;
+            }
+            return false;
         }
 
         /// <summary>Ağaç önkoşulu yüzünden kilitliyse Inspector'dan girilen uyarı mesajını döndürür. Aksi halde null döner.</summary>

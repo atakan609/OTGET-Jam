@@ -502,7 +502,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.0047101974, y: -0.3087201}
+  m_Offset: {x: 0.0047101974, y: -2.6840487}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -512,7 +512,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.6754911, y: 7.216242}
+  m_Size: {x: 1.6754911, y: 2.4655848}
   m_EdgeRadius: 0
 --- !u!50 &71417369
 Rigidbody2D:
@@ -584,7 +584,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 4368219378160320114, guid: 11e913c3c33e2b94e92294b53cc618db, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1132,7 +1132,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.000029633327}
+  m_AnchoredPosition: {x: 0, y: 0.46638745}
   m_SizeDelta: {x: 0, y: 595}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &130194813
@@ -5692,7 +5692,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 926282758}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.9999986
+  m_Size: 0.9696611
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
