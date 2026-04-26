@@ -31,6 +31,11 @@ namespace Gameplay
         {
             _rb = GetComponent<Rigidbody2D>();
             _noiseOffset = Random.Range(0f, 100f);
+
+            // Zemine çarpmadan düşsün; StaticBucket trigger alanına girince
+            // StaticBucket.OnTriggerEnter2D tetiklensin.
+            var col = GetComponent<Collider2D>();
+            if (col != null) col.isTrigger = true;
         }
 
         /// <summary>

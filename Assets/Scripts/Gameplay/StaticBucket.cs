@@ -25,6 +25,27 @@ namespace Gameplay
         {
             MaxCapacity = baseCapacity;
             _depot = FindObjectOfType<DepotController>();
+
+            // Collider'ı trigger yap — damlaların içinden geçip OnTriggerEnter2D'yi tetiklemesi için
+            var col = GetComponent<Collider2D>();
+            if (col != null) col.isTrigger = true;
+
+            // OnTriggerEnter2D'nin tetiklenebilmesi için Kinematic Rigidbody2D gerekli
+            if (GetComponent<Rigidbody2D>() == null)
+            {
+                var rb = gameObject.AddComponent<Rigidbody2D>();
+                rb.bodyType = RigidbodyType2D.Kinematic;
+                rb.simulated = true;
+            }
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            var drop = other.GetComponent<Raindrop>();
+            if (drop == null) return;
+
+            TryAddWater(drop.dropValue);
+            Destroy(other.gameObject);
         }
 
         private void Start()
