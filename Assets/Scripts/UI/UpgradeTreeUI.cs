@@ -138,25 +138,21 @@ namespace UI
 
             if (tooltipPanel != null && tooltipPanel.activeSelf)
             {
-                // Tooltip follow mouse
                 RectTransform tooltipRect = tooltipPanel.transform as RectTransform;
                 Canvas canvas = tooltipRect.GetComponentInParent<Canvas>();
 
-                if (canvas != null && canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                // Mouse pozisyonuna offset ekleyerek hedefi belirle (Böylece birikme yapmaz)
+                Vector3 mouseWithOffset = Input.mousePosition + new Vector3(25f, -25f, 0f);
+                Vector3 targetPos = mouseWithOffset;
+
+                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay && canvas.worldCamera != null)
                 {
-                    // Screen Space - Overlay için direkt pozisyon eşitleme
-                    tooltipRect.position = Input.mousePosition;
-                }
-                else if (canvas != null && canvas.worldCamera != null)
-                {
-                    // Screen Space - Camera için ekran pozisyonunu dünya koordinatına çevirme
-                    Vector3 mousePos = Input.mousePosition;
-                    mousePos.z = canvas.planeDistance;
-                    tooltipRect.position = canvas.worldCamera.ScreenToWorldPoint(mousePos);
+                    mouseWithOffset.z = canvas.planeDistance;
+                    targetPos = canvas.worldCamera.ScreenToWorldPoint(mouseWithOffset);
                 }
 
-                // Pozisyon sabitlendikten sonra imlecin sağ altında kalması için yerel offset
-                tooltipRect.localPosition += new Vector3(20f, -20f, 0f);
+                // Smooth follow (Damping) - Tek seferde hedefe Lerp yapıyoruz
+                tooltipRect.position = Vector3.Lerp(tooltipRect.position, targetPos, Time.unscaledDeltaTime * 20f);
             }
         }
 
@@ -254,6 +250,8 @@ namespace UI
             }
         }
 
+        private bool _firstTimeOpen = true;
+
         public void ToggleUI()
         {
             if (mainPanel != null)
@@ -267,6 +265,12 @@ namespace UI
                 cg.alpha = _isOpen ? 1f : 0f;
                 cg.interactable = _isOpen;
                 cg.blocksRaycasts = _isOpen;
+
+                if (_isOpen && _firstTimeOpen)
+                {
+                    CenterView();
+                    _firstTimeOpen = false;
+                }
             }
             else
             {
@@ -276,6 +280,37 @@ namespace UI
                 {
                     child.gameObject.SetActive(_isOpen);
                 }
+
+                if (_isOpen && _firstTimeOpen)
+                {
+                    CenterView();
+                    _firstTimeOpen = false;
+                }
+            }
+        }
+
+        public void CenterView()
+        {
+            if (contentTree == null) return;
+
+            // Zoom'u sıfırla
+            _currentZoom = 1f;
+            contentTree.localScale = Vector3.one;
+
+            // Pivot ve Anchor'ları merkeze zorla (Garantiye almak için)
+            contentTree.pivot = new Vector2(0.5f, 0.5f);
+            contentTree.anchorMin = new Vector2(0.5f, 0.5f);
+            contentTree.anchorMax = new Vector2(0.5f, 0.5f);
+
+            // Pozisyonu merkeze al
+            contentTree.anchoredPosition = Vector2.zero;
+
+            // Eğer bir ScrollRect varsa onun da değerlerini sıfırla
+            ScrollRect scrollRect = GetComponentInChildren<ScrollRect>();
+            if (scrollRect == null) scrollRect = GetComponentInParent<ScrollRect>();
+            if (scrollRect != null)
+            {
+                scrollRect.normalizedPosition = new Vector2(0.5f, 0.5f);
             }
         }
 
@@ -443,6 +478,7 @@ namespace UI
             }
 
             RecalculateContentSize(positions);
+            CenterView();
         }
 
         private UpgradeNodeDataSO FindNodeByType(UpgradeType type)
@@ -533,24 +569,58 @@ namespace UI
 
             tooltipPanel.SetActive(true);
 
-            if (tooltipTitleText != null)
-                tooltipTitleText.text = data.upgradeName;
+            // 1. Yazıları hazırla
+            if (tooltipTitleText != null) 
+                tooltipTitleText.text = $"<b>{data.upgradeName}</b>";
 
             if (tooltipDescText != null)
             {
-                if (data.isInfinite)
-                    tooltipDescText.text = $"Level: {currentLevel}";
-                else
-                    tooltipDescText.text = $"Level: {currentLevel}/{data.maxLevel}";
+                float curVal = data.GetValue(currentLevel);
+                float nextVal = data.GetValue(currentLevel + 1);
+                string unit = "mL";
+
+                string desc = data.description + "\n";
+                desc += $"<color=#A0A0A0>Current:</color> <color=#FFFFFF>{curVal}{unit}</color>\n";
+                if (!isMax) desc += $"<color=#A0A0A0>Next:</color> <color=#00FF00>+{nextVal - curVal}{unit} ({nextVal}{unit})</color>\n";
+                
+                string lvlTag = data.isInfinite ? $"Lv{currentLevel}" : $"Lv{currentLevel}/{data.maxLevel}";
+                desc += $"<size=80%><color=#FFD700>{lvlTag}</color></size>";
+
+                tooltipDescText.text = desc;
             }
 
             if (tooltipCostText != null)
             {
-                if (isMax)
-                    tooltipCostText.text = "Cost: MAX";
-                else
-                    tooltipCostText.text = $"Cost: {nextCost} mL";
+                if (isMax) tooltipCostText.text = "<color=#FF4444>MAXED OUT</color>";
+                else tooltipCostText.text = $"Cost: <color=#00CCFF>{nextCost} mL</color>";
             }
+
+            // 2. KRİTİK: En uzun olanın genişliğini bul ve hepsini ona eşitle
+            float maxWidth = 0f;
+            if (tooltipTitleText != null) maxWidth = Mathf.Max(maxWidth, tooltipTitleText.GetPreferredValues().x);
+            if (tooltipDescText != null) maxWidth = Mathf.Max(maxWidth, tooltipDescText.GetPreferredValues().x);
+            if (tooltipCostText != null) maxWidth = Mathf.Max(maxWidth, tooltipCostText.GetPreferredValues().x);
+
+            // Genişlik için makul bir sınır koyalım (Ekrana sığması için)
+            maxWidth = Mathf.Clamp(maxWidth, 150f, 400f);
+
+            // Tüm elemanları bu genişliğe zorla, yüksekliklerini kendi içeriklerine göre hesaplat
+            SetTextSize(tooltipTitleText, maxWidth);
+            SetTextSize(tooltipDescText, maxWidth);
+            SetTextSize(tooltipCostText, maxWidth);
+
+            // 3. Tüm sistemin boyutlarını tazeleyip hizala
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(tooltipPanel.transform as RectTransform);
+        }
+
+        private void SetTextSize(TMPro.TextMeshProUGUI text, float width)
+        {
+            if (text == null) return;
+            
+            // Verilen genişliğe göre ihtiyacı olan yüksekliği hesaplat
+            float height = text.GetPreferredValues(width, 0f).y;
+            text.rectTransform.sizeDelta = new Vector2(width, height);
         }
 
         public void HideTooltip()
