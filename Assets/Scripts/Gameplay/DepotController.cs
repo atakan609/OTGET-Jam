@@ -168,8 +168,8 @@ namespace Gameplay
 
             GameObject obj = Instantiate(floatingTextPrefab, transform.position + floatingTextOffset, Quaternion.identity);
             _activeFloatingText = obj.GetComponent<FloatingWaterText>();
-            // İlk miktarı 0 ile aç; Update içinde AddAmount ile arttırılacak
-            _activeFloatingText?.AddAmount(0f);
+            // Yeşil renkte başlat, Update içinde AddAmount ile birikecek
+            _activeFloatingText?.InitDeposit(Color.green);
         }
 
         private void FinalizeDepositText()

@@ -121,13 +121,13 @@ namespace Gameplay
                     bucket.SpillWater(waterSpillAmount);
                     float lost = before - bucket.CurrentWater;
 
-                    // Kaybedilen suyu kovanın üstünde –X ml olarak göster
+                    // Kaybedilen suyu kovanın üstünde –X ml olarak göster (kırmızı)
                     if (floatingTextPrefab != null && lost > 0.01f)
                     {
                         Vector3 spawnPos = bucket.transform.position + Vector3.up * 0.8f;
                         var obj = Instantiate(floatingTextPrefab, spawnPos, Quaternion.identity);
                         var ft  = obj.GetComponent<FloatingWaterText>();
-                        ft?.SetupAndFly(lost, negative: true);
+                        ft?.SetupAndFly(lost, Color.red, negative: true);
                     }
                 }
 

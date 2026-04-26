@@ -76,13 +76,17 @@ namespace Gameplay
 
                     if (added)
                     {
-                        // Floating text: kovanın biraz üstünde doğur
+                        // Floating text: altınsa altın rengi, normalse mavi
                         if (floatingTextPrefab != null)
                         {
+                            Color dropColor = isGolden
+                                ? new Color(1f, 0.84f, 0f)  // altın sarısı
+                                : new Color(0.3f, 0.7f, 1f); // açık mavi
+
                             Vector3 spawnPos = bucket.transform.position + Vector3.up * 0.8f;
                             var obj = Instantiate(floatingTextPrefab, spawnPos, Quaternion.identity);
                             var ft  = obj.GetComponent<FloatingWaterText>();
-                            ft?.SetupAndFly(finalValue);
+                            ft?.SetupAndFly(finalValue, dropColor);
                         }
                         // One-shot toplama sesi
                         SoundManager.Instance?.PlayRaindropCollect();
