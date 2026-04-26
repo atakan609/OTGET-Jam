@@ -167,6 +167,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dropValue: 5
   isGolden: 1
+  floatingTextPrefab: {fileID: 5999639522869482038, guid: 6f611a1c0da100b42ba9f1e82933b02e, type: 3}
   referenceDropValue: 1
   minScale: 0.01
   maxScale: 0.3

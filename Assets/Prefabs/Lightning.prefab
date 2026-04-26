@@ -222,10 +222,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   warningDuration: 0.8
   flashDuration: 0.15
+  soundDelay: 0.2
   warningObject: {fileID: 7725324132466708654}
   lightningBoltObject: {fileID: 3011511174119037227}
   strikeWidth: 0.6
   strikeHeight: 8
-  playerLayer:
-    serializedVersion: 2
-    m_Bits: 8
+  stunDuration: 1
+  waterSpillAmount: 2
+  floatingTextPrefab: {fileID: 5999639522869482038, guid: 6f611a1c0da100b42ba9f1e82933b02e, type: 3}

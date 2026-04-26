@@ -12,10 +12,15 @@ namespace Managers
         [Header("Audio Sources")]
         [SerializeField] private AudioSource backgroundSource; // Ambient / müzik — loop
         [SerializeField] private AudioSource sfxSource;        // One-shot efektler
+        [SerializeField] private AudioSource depotSource;      // Deposit loop sesi
 
         [Header("Startup Clips")]
         [SerializeField] private AudioClip backgroundClip;     // Oyun başlar başlamaz çalar
         [SerializeField] private AudioClip lightningClip;      // Yıldırım SFX
+
+        [Header("Gameplay Clips")]
+        [SerializeField] private AudioClip raindropCollectClip; // Su topladığında one-shot
+        [SerializeField] private AudioClip depotDepositClip;    // Depoya boşaltırken loop
 
         // ── Varsayılan ses seviyeleri ────────────────────────────────────────────
         private const float DefaultMaster     = 1f;
@@ -55,6 +60,30 @@ namespace Managers
             if (sfxSource == null || clip == null) return;
             sfxSource.pitch = pitch;
             sfxSource.PlayOneShot(clip, SfxVolume * MasterVolume);
+        }
+
+        /// <summary>Damla toplandığında one-shot SFX çalınır.</summary>
+        public void PlayRaindropCollect()
+        {
+            if (raindropCollectClip != null)
+                PlaySfx(raindropCollectClip, Random.Range(0.9f, 1.1f));
+        }
+
+        /// <summary>Depoya boşaltma başlayınca loop ses açılır.</summary>
+        public void StartDepositLoop()
+        {
+            if (depotSource == null || depotDepositClip == null) return;
+            if (depotSource.isPlaying) return;
+            depotSource.clip   = depotDepositClip;
+            depotSource.loop   = true;
+            depotSource.volume = SfxVolume * MasterVolume;
+            depotSource.Play();
+        }
+
+        /// <summary>Depoya boşaltma bitişinde loop durdurulur.</summary>
+        public void StopDepositLoop()
+        {
+            if (depotSource != null) depotSource.Stop();
         }
 
         /// <summary>Yıldırım sesini çal (Inspector'dan atanmış clip) farklı tonlarda (random pitch) çalar.</summary>

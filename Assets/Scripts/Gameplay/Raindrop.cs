@@ -10,6 +10,10 @@ namespace Gameplay
         [SerializeField] public float dropValue = 1f;
         [SerializeField] public bool isGolden = false;
 
+        [Header("Floating Text")]
+        [Tooltip("FloatingWaterText prefabını buraya sürüklein. Her damla toplandığında kovanın üstünde yükselir.")]
+        [SerializeField] private GameObject floatingTextPrefab;
+
         [Header("Visual Scale")]
         [Tooltip("dropValue = 1 olduğunda damlanın referans boyutu. Değer büyüdükçe bu oran'a göre scale'lenir.")]
         [SerializeField] private float referenceDropValue = 1f; // dropValue bu değere eşitken scale = 1x
@@ -62,21 +66,29 @@ namespace Gameplay
                 var bucket = other.GetComponentInChildren<BucketController>();
                 if (bucket != null)
                 {
-                    // Kombo çarpanı
-                    float comboMult = ComboManager.Instance != null ? ComboManager.Instance.Multiplier : 1f;
-
-                    // Genel çarpan (upgrade)
+                    float comboMult  = ComboManager.Instance  != null ? ComboManager.Instance.Multiplier           : 1f;
                     float globalMult = CurrencyManager.Instance != null ? CurrencyManager.Instance.GlobalMultiplier : 1f;
-
-                    // Kritik şans (upgrade)
-                    float critChance = CurrencyManager.Instance != null ? CurrencyManager.Instance.CritChance : 0f;
-                    float critMult = (Random.value < critChance) ? 2f : 1f;
+                    float critChance = CurrencyManager.Instance != null ? CurrencyManager.Instance.CritChance       : 0f;
+                    float critMult   = (Random.value < critChance) ? 2f : 1f;
 
                     float finalValue = dropValue * comboMult * globalMult * critMult;
-                    bucket.TryAddWater(finalValue);
+                    bool added = bucket.TryAddWater(finalValue);
 
-                    // Kombo sayacını artır
-                    ComboManager.Instance?.RegisterCollection();
+                    if (added)
+                    {
+                        // Floating text: kovanın biraz üstünde doğur
+                        if (floatingTextPrefab != null)
+                        {
+                            Vector3 spawnPos = bucket.transform.position + Vector3.up * 0.8f;
+                            var obj = Instantiate(floatingTextPrefab, spawnPos, Quaternion.identity);
+                            var ft  = obj.GetComponent<FloatingWaterText>();
+                            ft?.SetupAndFly(finalValue);
+                        }
+                        // One-shot toplama sesi
+                        SoundManager.Instance?.PlayRaindropCollect();
+                        // Kombo
+                        ComboManager.Instance?.RegisterCollection();
+                    }
                 }
                 Destroy(gameObject);
                 return;

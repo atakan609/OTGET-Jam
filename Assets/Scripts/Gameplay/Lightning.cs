@@ -25,6 +25,10 @@ namespace Gameplay
         [SerializeField] private float stunDuration = 1f;
         [SerializeField] private float waterSpillAmount = 2f;
 
+        [Header("Floating Text")]
+        [Tooltip("Oyuncuya çarptığında '–X ml' gösteren prefab.")]
+        [SerializeField] private GameObject floatingTextPrefab;
+
         // Spawn'da LightningManager tarafından set edilir
         private float _strikeX;
         private float _groundY;
@@ -112,7 +116,20 @@ namespace Gameplay
                 var bucket = col.GetComponentInChildren<BucketController>()
                           ?? col.GetComponent<BucketController>();
                 if (bucket != null)
+                {
+                    float before = bucket.CurrentWater;
                     bucket.SpillWater(waterSpillAmount);
+                    float lost = before - bucket.CurrentWater;
+
+                    // Kaybedilen suyu kovanın üstünde –X ml olarak göster
+                    if (floatingTextPrefab != null && lost > 0.01f)
+                    {
+                        Vector3 spawnPos = bucket.transform.position + Vector3.up * 0.8f;
+                        var obj = Instantiate(floatingTextPrefab, spawnPos, Quaternion.identity);
+                        var ft  = obj.GetComponent<FloatingWaterText>();
+                        ft?.SetupAndFly(lost, negative: true);
+                    }
+                }
 
                 break; // Aynı oyuncuya birden fazla defa vurma
             }
