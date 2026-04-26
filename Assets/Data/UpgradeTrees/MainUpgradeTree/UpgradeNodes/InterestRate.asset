@@ -15,4 +15,4 @@ MonoBehaviour:
   upgradeData: {fileID: 11400000, guid: 53a300eac87dd8046ad18372dcd9c747, type: 2}
   children:
   - {fileID: 0}
-  icon: {fileID: -6359276090418552137, guid: 1ecbf9f956d60514baa3d44a5a917dd7, type: 3}
+  icon: {fileID: 8452132263391814442, guid: 87e34e7fc1df01e43924bf4bd1205df4, type: 3}

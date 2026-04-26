@@ -16,8 +16,6 @@ namespace UI
         [SerializeField] private Button button;
         [SerializeField] private Image background;
         [SerializeField] private Image icon;
-        [SerializeField] private TextMeshProUGUI levelText;
-        [SerializeField] private TextMeshProUGUI costText;
 
         [Header("State Colors")]
         [SerializeField] private Color lockedColor = new Color(0.3f, 0.3f, 0.3f, 1f);
@@ -99,30 +97,7 @@ namespace UI
                 }
             }
 
-            if (levelText != null)
-            {
-                if (_nodeData != null && _nodeData.upgradeData.isInfinite)
-                {
-                    levelText.text = currentLevel > 0 ? $"Lv{currentLevel}" : "Lv0";
-                }
-                else
-                {
-                    levelText.text = $"{currentLevel}/{maxLevel}";
-                }
-            }
 
-            if (costText != null)
-            {
-                if (_currentState == NodeState.Maxed)
-                {
-                    costText.text = "MAX";
-                }
-                else
-                {
-                    int cost = UpgradeManager.Instance.GetNextCost(_nodeData.upgradeData.upgradeType);
-                    costText.text = cost.ToString() + " mL";
-                }
-            }
 
             if (button != null)
             {
