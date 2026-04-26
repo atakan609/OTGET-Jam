@@ -170,6 +170,85 @@ namespace Managers
         /// <summary>Upgrade için veri tanımı var mı?</summary>
         public bool HasData(UpgradeType type) => _dataLookup.ContainsKey(type);
 
+        /// <summary>
+        /// GameWin hariç tüm kayıtlı upgrade'lerin max seviyede olup olmadığını döndürür.
+        /// Bu koşul GameWin upgrade'inin kilidini açmak için kullanılır.
+        /// </summary>
+        public bool IsAllUpgradesMaxed()
+        {
+            EnsureInitialized();
+            foreach (var kvp in _dataLookup)
+            {
+                if (kvp.Key == UpgradeType.GameWin) continue; // Kendisi sayılmaz
+                if (kvp.Value.isInfinite) continue;            // Sonsuz olanlar sayılmaz
+                if (GetLevel(kvp.Key) < kvp.Value.maxLevel) return false;
+            }
+            return true;
+        }
+
+        /// <summary>Debug için: GameWin hariç tüm upgradeleri max seviyeye çeker.</summary>
+        public void Debug_MaxAllUpgrades()
+        {
+            EnsureInitialized();
+            
+            var targetTree = treeData;
+            // Eğer Inspector'da unutulduysa UI'dan çekmeyi dene
+            if (targetTree == null)
+            {
+                var ui = FindObjectOfType<UI.UpgradeTreeUI>();
+                if (ui != null) targetTree = ui.TreeData;
+            }
+
+            if (targetTree != null && targetTree.rootNode != null)
+            {
+                // Ağacı BFS ile tarayarak baştan (depo) sona doğru ağaç hiyerarşisinde upgrade yap
+                var queue = new Queue<UpgradeNodeDataSO>();
+                var visited = new HashSet<UpgradeNodeDataSO>();
+                
+                queue.Enqueue(targetTree.rootNode);
+                visited.Add(targetTree.rootNode);
+                
+                while (queue.Count > 0)
+                {
+                    var node = queue.Dequeue();
+                    if (node != null && node.upgradeData != null)
+                    {
+                        var type = node.upgradeData.upgradeType;
+                        if (type != UpgradeType.GameWin && !node.upgradeData.isInfinite)
+                        {
+                            _levels[type] = node.upgradeData.maxLevel;
+                            OnUpgradePurchased?.Invoke(type, node.upgradeData.maxLevel);
+                        }
+                        
+                        if (node.children != null)
+                        {
+                            foreach (var child in node.children)
+                            {
+                                if (child != null && !visited.Contains(child))
+                                {
+                                    visited.Add(child);
+                                    queue.Enqueue(child);
+                                }
+                            }
+                        }
+                    }
+                }
+                Debug.Log("⬆️ Tüm upgradelar ağaç bağımlılıklarına dikkat edilerek tek tek maxlandı.");
+            }
+            else
+            {
+                Debug.LogWarning("[UpgradeManager] UpgradeTreeDataSO referansı BULUNAMADI! Upgradeler rastgele sırada maxlanıyor...");
+                var safeList = new List<KeyValuePair<UpgradeType, UpgradeDataSO>>(_dataLookup);
+                foreach (var kvp in safeList)
+                {
+                    if (kvp.Key == UpgradeType.GameWin) continue;
+                    if (kvp.Value.isInfinite) continue;
+                    _levels[kvp.Key] = kvp.Value.maxLevel;
+                    OnUpgradePurchased?.Invoke(kvp.Key, kvp.Value.maxLevel);
+                }
+            }
+        }
+
         // ─── DEBUG ─────────────────────────────────────────────────────────────
 
         private void OnGUI()

@@ -19,7 +19,7 @@ public class DebugPanel : MonoBehaviour
     private bool _isOpen = false;
 
     // Panel boyutu ve pozisyonu
-    private Rect _windowRect = new Rect(10f, 10f, 260f, 400f);
+    private Rect _windowRect = new Rect(10f, 10f, 260f, 600f);
     private bool _isDragging = false;
     private Vector2 _dragOffset;
 
@@ -105,12 +105,18 @@ public class DebugPanel : MonoBehaviour
             Debug_SpawnNormalDrop();
         DrawSeparator();
 
-        // ─── KOVA ───────────────────────────────────────────────────────────
+        // ─── KOVA ───────────────────────────────────────────────────
         GUILayout.Label("── KOVA ──", sectionStyle);
         if (GUILayout.Button("🪣 Kovayı Doldur"))
             Debug_FillBucket();
         if (GUILayout.Button("🪣 Kovayı Boşalt"))
             Debug_EmptyBucket();
+        DrawSeparator();
+
+        // ─── UPGRADE ───────────────────────────────────────────
+        GUILayout.Label("── UPGRADE ──", sectionStyle);
+        if (GUILayout.Button("⬆️ Tüm Upgradeleri Al (MAX)"))
+            Debug_MaxAllUpgrades();
     }
 
     private void DrawSeparator()
@@ -235,6 +241,16 @@ public class DebugPanel : MonoBehaviour
             Log("🪣 Kova boşaltıldı.");
         }
         else Log("BucketController bulunamadı!");
+    }
+
+    private void Debug_MaxAllUpgrades()
+    {
+        if (UpgradeManager.Instance != null)
+        {
+            UpgradeManager.Instance.Debug_MaxAllUpgrades();
+            Log("⬆️ Tüm upgradelar max seviyeye çekildi.");
+        }
+        else Log("UpgradeManager bulunamadı!");
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

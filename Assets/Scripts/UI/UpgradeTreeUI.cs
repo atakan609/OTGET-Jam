@@ -368,6 +368,7 @@ namespace UI
                 {
                     foreach (var child in node.children)
                     {
+                        if (child == null) continue;
                         CreateNodeUI(child, node, positions);
                         CreateConnection(node, child, positions);
                     }

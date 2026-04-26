@@ -45,6 +45,9 @@ namespace Gameplay
         GeneratorGroundwater,   // Yeraltı Suyu Pompası - pasif mL/sn
         GeneratorRainHarvester, // Yağmur Hasadı Sistemi - pasif mL/sn
         GeneratorCondenser,     // Nem Yoğuşturucu - pasif mL/sn
-        GeneratorCloudSeeder    // Bulut Tohumlayıcı İstasyon - pasif mL/sn
+        GeneratorCloudSeeder,    // Bulut Tohumlayıcı İstasyon - pasif mL/sn
+
+        // --- Oyun Sonu ---
+        GameWin                 // Tüm upgradeleri aldıktan sonra açılan özel upgrade
     }
 }
